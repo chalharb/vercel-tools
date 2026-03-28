@@ -1,0 +1,18 @@
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Policy Type: Edge Redirector
+# Policy: Example_Redirects
+# Policy ID: 12345
+# Version: 100
+# Description: Redirect policy for example website
+# Create Date: 2026-03-01T19:29:21.960172Z
+# Last Update: 2026-03-01T19:33:31.393090Z
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+scheme,host,path,result.redirectURL,result.statusCode
+https,www.example.com,/old-home /old-home/,https://www.example.com/,301
+https,www.example.com,/blog/2023/welcome,https://www.example.com/articles/welcome,301
+https,www.example.com,/about /about/,https://www.example.com/about-us,301
+https,www.example.com,/docs/v1/api,https://www.example.com/docs/v2/api,308
+https,www.example.com,/careers,https://www.example.com/jobs,302
+https,www.example.com,/contact /contact/,https://www.example.com/support,301
+https,www.example.com,/pricing,https://www.example.com/plans,301
+https,www.example.com,/faq /faq/,https://www.example.com/help/faq,301

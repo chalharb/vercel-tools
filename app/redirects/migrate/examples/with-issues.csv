@@ -1,0 +1,13 @@
+source,destination,statusCode
+https://example.com/old-page,https://example.com/new-page,301
+https://example.com/old-page/,https://example.com/new-page,301
+https://example.com/old-page,https://example.com/new-page,301
+https://example.com/blog,https://example.com/articles,301
+https://example.com/blog,https://example.com/news,302
+https://example.com/about/,https://example.com/about-us,301
+https://example.com/about,https://example.com/about-us,301
+https://example.com/docs,https://example.com/documentation,308
+https://example.com/careers,https://example.com/jobs,301
+https://example.com/careers/,https://example.com/hiring,301
+https://example.com/pricing,https://example.com/plans,302
+https://example.com/pricing,https://example.com/plans,302

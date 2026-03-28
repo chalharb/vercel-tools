@@ -1,0 +1,14 @@
+# Apache mod_rewrite redirects
+RewriteEngine On
+
+RewriteRule ^old-page$ /new-page [R=301,L]
+RewriteRule ^blog/2023/intro$ /articles/intro [R=301,L]
+RewriteRule ^about$ /about-us [R=302,L]
+RewriteRule ^docs/v1/getting-started$ /docs/v2/getting-started [R=308,L]
+RewriteRule ^careers$ /jobs [R=301,L]
+RewriteRule ^contact$ /support [R=301,L]
+RewriteRule ^pricing$ /plans [R=302,L]
+RewriteRule ^faq$ /help/faq [R=301,L]
+
+Redirect 301 /legacy /modern
+Redirect 302 /temp-promo /sale

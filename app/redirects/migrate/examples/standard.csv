@@ -1,0 +1,9 @@
+source,destination,statusCode
+https://example.com/old-page,https://example.com/new-page,301
+https://example.com/blog/2023/intro,https://example.com/articles/intro,301
+https://example.com/about,https://example.com/about-us,302
+https://example.com/docs/v1/getting-started,https://example.com/docs/v2/getting-started,308
+https://example.com/careers,https://example.com/jobs,301
+https://example.com/contact,https://example.com/support,301
+https://example.com/pricing,https://example.com/plans,302
+https://example.com/faq,https://example.com/help/faq,301
