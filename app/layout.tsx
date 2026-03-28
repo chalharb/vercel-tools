@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/blocks/theme/theme-provider"
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Navbar } from "@/components/layout/navbar";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -43,6 +44,7 @@ export default function RootLayout({
           >
             <Navbar />
           <div className="flex-1">{children}</div>
+          <Toaster />
           </ThemeProvider>
       </body>
     </html>
