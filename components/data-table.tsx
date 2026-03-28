@@ -377,7 +377,10 @@ export function buildColumnsFromHeaders(
   headers: string[]
 ): ColumnDef<Record<string, string>>[] {
   return headers.map((header) => ({
-    accessorKey: header,
+    // Use accessorFn + explicit id for headers containing dots so TanStack
+    // Table doesn't interpret them as nested key paths.
+    id: header,
+    accessorFn: (row) => row[header] ?? "",
     header: header,
     cell: ({ getValue }) => {
       const value = getValue() as string;

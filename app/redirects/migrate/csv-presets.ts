@@ -1,4 +1,62 @@
 /**
+ * Describes how to produce a single output field from one or more raw columns.
+ * - When `columns` has one entry it is a direct mapping.
+ * - When `columns` has multiple entries, `separators[i]` is inserted between
+ *   columns[i] and columns[i+1]. Missing entries default to "".
+ *   e.g. columns=["scheme","host","path"], separators=["://",""] → "https://example.com/old-page"
+ */
+export interface ColumnFieldSpec {
+  columns: string[];
+  /** Per-join separators. separators[i] goes between columns[i] and columns[i+1]. */
+  separators?: string[];
+}
+
+/** Resolve a ColumnFieldSpec against a raw row into a string value. */
+function resolveSpec(spec: ColumnFieldSpec, row: Record<string, string>): string {
+  return spec.columns.reduce((acc, col, i) => {
+    const sep = i === 0 ? "" : (spec.separators?.[i - 1] ?? "");
+    return acc + sep + (row[col] ?? "");
+  }, "");
+}
+
+/**
+ * A simple column mapping created by the user in the Column Mapping dialog.
+ * Each field can map to a single column or a combination of columns.
+ */
+export interface ColumnMapping {
+  /** Column(s) to combine into the redirect source */
+  source: ColumnFieldSpec;
+  /** Column(s) to combine into the redirect destination */
+  destination: ColumnFieldSpec;
+  /** Column to use as the status code, or null to use the default */
+  statusCode: string | null;
+  /** Default status code when `statusCode` is null or the column value is empty */
+  defaultStatusCode?: string;
+}
+
+/**
+ * Applies a user-defined ColumnMapping to raw parsed data, producing rows with
+ * the standard `source`, `destination`, and `statusCode` fields.
+ */
+export function applyColumnMapping(
+  rawData: Record<string, string>[],
+  mapping: ColumnMapping
+): { data: Record<string, string>[]; headers: string[] } {
+  const mapped = rawData.map((row) => ({
+    source: resolveSpec(mapping.source, row),
+    destination: resolveSpec(mapping.destination, row),
+    statusCode:
+      (mapping.statusCode ? row[mapping.statusCode] : undefined) ||
+      mapping.defaultStatusCode ||
+      "308",
+  }));
+  return { data: mapped, headers: [...STANDARD_HEADERS] };
+}
+
+/** User-configurable options that modify how a preset's transform behaves. */
+export type PresetOptions = Record<string, boolean | string>;
+
+/**
  * A preset maps known CSV formats to standard redirect fields.
  *
  * Simple presets use `columns` to map field names.
@@ -12,9 +70,11 @@ export interface CsvPreset {
   /** Strip comment lines, frontmatter, etc. before PapaParse runs. */
   preprocess?: (raw: string) => string;
   /** Custom row-level mapping. When defined, `columns` is ignored.
-   *  Can return a single row, multiple rows (for expansion), or null to skip. */
+   *  Can return a single row, multiple rows (for expansion), or null to skip.
+   *  Receives optional user-configurable options as the second argument. */
   transform?: (
-    row: Record<string, string>
+    row: Record<string, string>,
+    options?: PresetOptions
   ) =>
     | { source: string; destination: string; statusCode: string }
     | { source: string; destination: string; statusCode: string }[]
@@ -28,6 +88,17 @@ export interface CsvPreset {
     statusCode?: string;
   };
   defaultStatusCode?: string;
+  /** Declarative option definitions shown as controls in the mapping dialog. */
+  optionDefs?: PresetOptionDef[];
+}
+
+/** Describes a user-facing toggle or input shown in the mapping dialog for a preset. */
+export interface PresetOptionDef {
+  key: string;
+  label: string;
+  description?: string;
+  type: "boolean";
+  defaultValue: boolean;
 }
 
 function htaccessTransformRows(
@@ -98,13 +169,14 @@ export const CSV_PRESETS: CsvPreset[] = [
         .split("\n")
         .filter((line) => !line.startsWith("#"))
         .join("\n"),
-    transform: (row) => {
+    transform: (row, options) => {
       const scheme = row["scheme"] || "https";
       const host = row["host"];
       const pathField = row["path"] || "";
       const matchUrl = row["matchURL"];
       const destination = row["result.redirectURL"];
       const statusCode = row["result.statusCode"] || "301";
+      const includeSchemeAndDomain = options?.["includeSchemeAndDomain"] !== false;
 
       if (!destination) return null;
 
@@ -118,15 +190,27 @@ export const CSV_PRESETS: CsvPreset[] = [
       // Expand each into its own row so the analysis can detect
       // trailing-slash duplicates and conflicts.
       const paths = pathField.trim().split(/\s+/);
+      const buildSource = (p: string) =>
+        includeSchemeAndDomain ? `${scheme}://${host}${p}` : p;
+
       if (paths.length === 1) {
-        return { source: `${scheme}://${host}${paths[0]}`, destination, statusCode };
+        return { source: buildSource(paths[0]), destination, statusCode };
       }
       return paths.map((p) => ({
-        source: `${scheme}://${host}${p}`,
+        source: buildSource(p),
         destination,
         statusCode,
       }));
     },
+    optionDefs: [
+      {
+        key: "includeSchemeAndDomain",
+        label: "Include scheme and domain in source",
+        description: "e.g. https://example.com/path instead of /path",
+        type: "boolean",
+        defaultValue: true,
+      },
+    ],
   },
 ];
 
@@ -135,12 +219,13 @@ export const STANDARD_HEADERS = ["source", "destination", "statusCode"] as const
 export function applyPreset(
   rawData: Record<string, string>[],
   rawHeaders: string[],
-  preset: CsvPreset
+  preset: CsvPreset,
+  options?: PresetOptions
 ): { data: Record<string, string>[]; headers: string[] } {
   // Custom transform path (Akamai, etc.)
   if (preset.transform) {
     const mapped = rawData.flatMap((row) => {
-      const result = preset.transform!(row);
+      const result = preset.transform!(row, options);
       if (!result) return [];
       return Array.isArray(result) ? result : [result];
     });

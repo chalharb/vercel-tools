@@ -13,16 +13,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { CsvPreset } from "./csv-presets";
 import { CSV_EXAMPLES, type CsvExample } from "./examples";
 
 interface CsvDropzoneProps {
-  activePreset: CsvPreset | null;
   onFile: (file: File) => void;
   onLoadExample: (example: CsvExample) => void;
 }
 
-export function CsvDropzone({ activePreset, onFile, onLoadExample }: CsvDropzoneProps) {
+export function CsvDropzone({ onFile, onLoadExample }: CsvDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false);
 
   const onDrop = useCallback(
@@ -62,9 +60,7 @@ export function CsvDropzone({ activePreset, onFile, onLoadExample }: CsvDropzone
         <div>
           <p className="font-medium">Drop a file here or click to browse</p>
           <p className="text-sm text-muted-foreground">
-            {activePreset
-              ? `Expecting ${activePreset.description}`
-              : "Supports .csv, .htaccess, and other text formats"}
+            Supports .csv, .htaccess, and other text formats
           </p>
         </div>
         <input

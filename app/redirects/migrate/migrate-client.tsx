@@ -15,38 +15,154 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DataTable } from "@/components/data-table";
-import { CSV_PRESETS, type CsvPreset } from "./csv-presets";
+import { CSV_PRESETS } from "./csv-presets";
 import { CsvDropzone } from "./csv-dropzone";
-import { PresetPicker } from "./preset-picker";
 import { SummaryCard } from "./summary-card";
 import { BulkActionsMenu } from "./bulk-actions-menu";
+import { ColumnMappingDialog, type ResolvedMapping } from "./column-mapping-dialog";
 import type { CsvExample } from "./examples";
 import {
   useCsvParser,
   useRedirectAnalysis,
   useIssueFilterOptions,
   useTableColumns,
-  usePresetMismatch,
+  useActiveMappingLabel,
 } from "./use-migrate";
+import { useSavedMappings } from "./use-column-mapping";
 
 export function MigrateClient() {
-  const [activePreset, setActivePreset] = useState<CsvPreset | null>(null);
+  // Resolved mapping (set after the dialog is confirmed)
+  const [resolvedMapping, setResolvedMapping] = useState<ResolvedMapping | null>(null);
 
-  const csv = useCsvParser(activePreset);
-  const analysis = useRedirectAnalysis(csv.rawData, csv.rawHeaders, activePreset);
+  // Controls whether the Column Mapping dialog is open
+  const [mappingDialogOpen, setMappingDialogOpen] = useState(false);
+  // Hint passed to the dialog (e.g. from example loader) for pre-selection
+  const [mappingDialogHint, setMappingDialogHint] = useState<ResolvedMapping | undefined>(undefined);
+
+  // Pending file/text kept while dialog is open
+  const pendingFileRef = useRef<{ text: string; name: string; preset?: ResolvedMapping } | null>(null);
+  // Original raw text stored so the dialog can be re-opened to change the mapping
+  const originalTextRef = useRef<{ text: string; name: string } | null>(null);
+
+  const csv = useCsvParser();
+  const analysis = useRedirectAnalysis(csv.rawData, csv.rawHeaders, resolvedMapping);
+  const { savedMappings, saveMapping } = useSavedMappings();
 
   const issueFilterOptions = useIssueFilterOptions(analysis.stats);
   const columns = useTableColumns(analysis.headers, analysis.canAnalyze);
-  const presetMismatch = usePresetMismatch(activePreset, csv.rawHeaders);
+  const mappingLabel = useActiveMappingLabel(resolvedMapping);
 
   const reset = useCallback(() => {
     csv.reset();
-    setActivePreset(null);
+    setResolvedMapping(null);
+    setMappingDialogOpen(false);
+    setMappingDialogHint(undefined);
+    pendingFileRef.current = null;
+    originalTextRef.current = null;
     analysis.resetActions();
   }, [csv, analysis]);
 
+  // ------------------------------------------------------------------
+  // After a file/text is loaded into rawData/rawHeaders, open the dialog
+  // ------------------------------------------------------------------
+  function openMappingDialog(text: string, name: string, presetHint?: ResolvedMapping) {
+    pendingFileRef.current = { text, name, preset: presetHint };
+    setMappingDialogHint(presetHint);
+    setMappingDialogOpen(true);
+  }
+
+  // ------------------------------------------------------------------
+  // Dialog: user confirmed a mapping
+  // ------------------------------------------------------------------
+  const handleMappingConfirm = useCallback(
+    (resolved: ResolvedMapping, save: { shouldSave: boolean; name: string }) => {
+      setResolvedMapping(resolved);
+      setMappingDialogOpen(false);
+
+      // If it's a preset with preprocess, re-parse with preprocessing applied
+      if (resolved.kind === "preset" && resolved.preset.preprocess && pendingFileRef.current) {
+        const { text, name } = pendingFileRef.current;
+        csv.loadText(text, name, resolved.preset);
+      }
+
+      if (save.shouldSave && resolved.kind === "custom") {
+        saveMapping(save.name, resolved.mapping);
+      }
+
+      pendingFileRef.current = null;
+    },
+    [csv, saveMapping]
+  );
+
+  // ------------------------------------------------------------------
+  // Dialog: user cancelled
+  // ------------------------------------------------------------------
+  const handleMappingCancel = useCallback(() => {
+    setMappingDialogOpen(false);
+    // Also clear the parsed raw data so we go back to the dropzone
+    csv.reset();
+    pendingFileRef.current = null;
+  }, [csv]);
+
+  // ------------------------------------------------------------------
+  // File upload from dropzone
+  // ------------------------------------------------------------------
+  const handleFile = useCallback(
+    (file: File) => {
+      const name = file.name.toLowerCase();
+      if (
+        !name.endsWith(".csv") &&
+        !name.endsWith(".htaccess") &&
+        !name.endsWith(".txt") &&
+        !name.endsWith(".tsv")
+      ) {
+        // Let useCsvParser set the error via handleFile
+        csv.handleFile(file);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = reader.result as string;
+        // Load raw (no preset preprocessing yet) so dialog can show raw headers
+        csv.loadText(text, file.name);
+        originalTextRef.current = { text, name: file.name };
+        openMappingDialog(text, file.name);
+      };
+      reader.onerror = () => csv.handleFile(file); // fallback, triggers error state
+      reader.readAsText(file);
+    },
+    [csv]
+  );
+
+  // ------------------------------------------------------------------
+  // Example loading
+  // ------------------------------------------------------------------
+  const handleLoadExample = useCallback(
+    (example: CsvExample) => {
+      const text = example.toCsv ? example.toCsv(example.content) : example.content;
+
+      let presetHint: ResolvedMapping | undefined;
+      if (example.mappingHint) {
+        presetHint = example.mappingHint;
+      } else if (example.presetId) {
+        const preset = CSV_PRESETS.find((p) => p.id === example.presetId) ?? null;
+        if (preset) presetHint = { kind: "preset", preset };
+      }
+
+      // For complex presets (preprocess + transform), load the raw text first
+      // so we can show the unprocessed headers in the dialog.
+      // The dialog will re-trigger preprocessing on confirm.
+      csv.loadText(text, example.fileName);
+      originalTextRef.current = { text, name: example.fileName };
+      openMappingDialog(text, example.fileName, presetHint);
+    },
+    [csv]
+  );
+
+  // ------------------------------------------------------------------
+  // Import
+  // ------------------------------------------------------------------
   const importingRef = useRef(false);
 
   const handleImport = useCallback(() => {
@@ -64,54 +180,27 @@ export function MigrateClient() {
       }),
       {
         loading: `Importing ${rowCount} redirect${rowCount !== 1 ? "s" : ""} to Vercel…`,
-        success: (data) => `Successfully imported ${data.count} redirect${data.count !== 1 ? "s" : ""} to Vercel.`,
+        success: (data) =>
+          `Successfully imported ${data.count} redirect${data.count !== 1 ? "s" : ""} to Vercel.`,
         error: "Failed to import redirects.",
       }
     );
   }, [analysis.data.length]);
 
-  const handleLoadExample = useCallback(
-    (example: CsvExample) => {
-      const text = example.toCsv
-        ? example.toCsv(example.content)
-        : example.content;
-
-      if (example.presetId) {
-        const preset = CSV_PRESETS.find((p) => p.id === example.presetId) ?? null;
-        setActivePreset(preset);
-        csv.loadText(
-          preset?.preprocess ? preset.preprocess(text) : text,
-          example.fileName
-        );
-      } else {
-        csv.loadText(text, example.fileName);
-      }
-    },
-    [csv]
-  );
-
+  // ------------------------------------------------------------------
+  // Render
+  // ------------------------------------------------------------------
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Redirect Migration Tool</h1>
-          <p className="text-muted-foreground">
-            Upload a CSV to bulk import redirects into Vercel.
-          </p>
-        </div>
-        <PresetPicker activePreset={activePreset} onSelect={setActivePreset} />
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Redirect Migration Tool</h1>
+        <p className="text-muted-foreground">
+          Upload a CSV to bulk import redirects into Vercel.
+        </p>
       </div>
 
-      {activePreset && !csv.fileName && (
-        <p className="text-sm text-muted-foreground">
-          Format set to{" "}
-          <span className="font-medium text-foreground">{activePreset.name}</span>
-          {" — "}columns will be mapped automatically on upload.
-        </p>
-      )}
-
       {!csv.fileName ? (
-        <CsvDropzone activePreset={activePreset} onFile={csv.handleFile} onLoadExample={handleLoadExample} />
+        <CsvDropzone onFile={handleFile} onLoadExample={handleLoadExample} />
       ) : (
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
@@ -121,14 +210,26 @@ export function MigrateClient() {
                 {" — "}
                 {analysis.data.length} row{analysis.data.length !== 1 && "s"} parsed
               </p>
-              {activePreset && !presetMismatch && (
+              {mappingLabel && (
                 <p className="text-xs text-muted-foreground">
-                  Mapped with <span className="font-medium">{activePreset.name}</span> format
-                </p>
-              )}
-              {presetMismatch && (
-                <p className="text-xs text-destructive">
-                  CSV columns don&apos;t match the {activePreset!.name} format — showing raw data
+                  Mapped with{" "}
+                  <button
+                    className="font-medium text-foreground underline-offset-2 hover:underline cursor-pointer"
+                    onClick={() => {
+                      // Re-open the dialog to adjust the mapping.
+                      // Restore the original raw text so complex presets can re-preprocess.
+                      if (originalTextRef.current) {
+                        const { text, name } = originalTextRef.current;
+                        // Re-parse raw (without any preset preprocessing) so the dialog
+                        // shows the original unprocessed headers.
+                        csv.loadText(text, name);
+                        pendingFileRef.current = { text, name };
+                      }
+                      setMappingDialogOpen(true);
+                    }}
+                  >
+                    {mappingLabel}
+                  </button>
                 </p>
               )}
             </div>
@@ -152,17 +253,26 @@ export function MigrateClient() {
                       <AlertDialogDescription asChild>
                         <div className="flex flex-col gap-2">
                           <p>Unresolved issues may cause unexpected behavior</p>
-                          <p className="mt-4">
+                          <div className="mt-4">
                             <span className="font-bold">Identified Issues:</span>
                             <ul className="ml-6 list-disc [&>li]:mt-2">
                               {analysis.stats.pathsWithIssues > 0 && (
-                                <li><span className="font-medium text-yellow-500">{analysis.stats.pathsWithIssues} path issues</span></li>
+                                <li>
+                                  <span className="font-medium text-yellow-500">
+                                    {analysis.stats.pathsWithIssues} path issues
+                                  </span>
+                                </li>
                               )}
                               {analysis.stats.conflicts > 0 && (
-                              <li><span className="font-medium text-destructive">{analysis.stats.conflicts} conflict{analysis.stats.conflicts !== 1 ? "s" : ""}</span></li>
+                                <li>
+                                  <span className="font-medium text-destructive">
+                                    {analysis.stats.conflicts} conflict
+                                    {analysis.stats.conflicts !== 1 ? "s" : ""}
+                                  </span>
+                                </li>
                               )}
                             </ul>
-                          </p>
+                          </div>
                         </div>
                       </AlertDialogDescription>
                     </AlertDialogHeader>
@@ -189,16 +299,6 @@ export function MigrateClient() {
             </div>
           </div>
 
-          {analysis.canAnalyze && (
-            <label className="flex items-center gap-2 text-sm">
-              <Checkbox
-                checked={analysis.includeOrigin}
-                onCheckedChange={(checked) => analysis.setIncludeOrigin(checked === true)}
-              />
-              Include scheme and domain in source
-            </label>
-          )}
-
           {analysis.stats && (
             <SummaryCard
               totalPaths={analysis.stats.totalPaths}
@@ -210,15 +310,29 @@ export function MigrateClient() {
           <DataTable
             columns={columns}
             data={analysis.enrichedData}
-            facetFilters={issueFilterOptions ? [{ columnId: "issues", label: "Issue type", options: issueFilterOptions }] : undefined}
+            facetFilters={
+              issueFilterOptions
+                ? [{ columnId: "issues", label: "Issue type", options: issueFilterOptions }]
+                : undefined
+            }
             onDeleteRows={analysis.handleDeleteRows}
           />
         </div>
       )}
 
-      {csv.error && (
-        <p className="text-sm text-destructive">{csv.error}</p>
-      )}
+      {csv.error && <p className="text-sm text-destructive">{csv.error}</p>}
+
+      {/* Column Mapping Dialog — always shown post-upload */}
+      <ColumnMappingDialog
+        open={mappingDialogOpen}
+        rawHeaders={csv.rawHeaders}
+        rawPreview={csv.rawData.slice(0, 4)}
+        fileName={csv.fileName ?? ""}
+        savedMappings={savedMappings}
+        presetHint={mappingDialogHint}
+        onCancel={handleMappingCancel}
+        onConfirm={handleMappingConfirm}
+      />
     </div>
   );
 }

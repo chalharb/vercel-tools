@@ -11,9 +11,21 @@ import {
   ISSUE_VARIANTS,
   type RedirectIssue,
 } from "@/lib/redirect-analysis";
-import { applyPreset, type CsvPreset } from "./csv-presets";
+import {
+  applyColumnMapping,
+  applyPreset,
+  type ColumnMapping,
+  type CsvPreset,
+} from "./csv-presets";
+import type { ResolvedMapping } from "./column-mapping-dialog";
 
-export function useCsvParser(activePreset: CsvPreset | null) {
+// ---------------------------------------------------------------------------
+// useCsvParser
+// ---------------------------------------------------------------------------
+// Parses a CSV file into rawData / rawHeaders WITHOUT applying any mapping.
+// Preset preprocessing (comment stripping etc.) is applied here if provided.
+
+export function useCsvParser() {
   const [rawData, setRawData] = useState<Record<string, string>[]>([]);
   const [rawHeaders, setRawHeaders] = useState<string[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -40,20 +52,21 @@ export function useCsvParser(activePreset: CsvPreset | null) {
     });
   }, []);
 
+  /**
+   * Load text directly (used by examples).
+   * Pass an optional preset so that `preprocess` runs before PapaParse.
+   */
   const loadText = useCallback(
-    (text: string, name: string) => {
+    (text: string, name: string, preset?: CsvPreset | null) => {
       setError(null);
-      let processed = text;
-      if (activePreset?.preprocess) {
-        processed = activePreset.preprocess(processed);
-      }
+      const processed = preset?.preprocess ? preset.preprocess(text) : text;
       parseCSV(processed, name);
     },
-    [activePreset, parseCSV]
+    [parseCSV]
   );
 
   const handleFile = useCallback(
-    (file: File) => {
+    (file: File, preset?: CsvPreset | null) => {
       setError(null);
       const name = file.name.toLowerCase();
       if (
@@ -67,7 +80,7 @@ export function useCsvParser(activePreset: CsvPreset | null) {
       }
       const reader = new FileReader();
       reader.onload = () => {
-        loadText(reader.result as string, file.name);
+        loadText(reader.result as string, file.name, preset);
       };
       reader.onerror = () => setError("Failed to read file.");
       reader.readAsText(file);
@@ -85,26 +98,39 @@ export function useCsvParser(activePreset: CsvPreset | null) {
   return { rawData, rawHeaders, fileName, error, handleFile, loadText, reset };
 }
 
+// ---------------------------------------------------------------------------
+// useRedirectAnalysis
+// ---------------------------------------------------------------------------
+// Accepts either a CsvPreset or a ColumnMapping (via ResolvedMapping) and
+// handles all the data-transformation, issue-detection, and filter logic.
+
 export function useRedirectAnalysis(
   rawData: Record<string, string>[],
   rawHeaders: string[],
-  activePreset: CsvPreset | null
+  resolvedMapping: ResolvedMapping | null
 ) {
   const [appliedActions, setAppliedActions] = useState<Set<string>>(new Set());
   const [manuallyDeletedKeys, setManuallyDeletedKeys] = useState<Set<string>>(new Set());
   const [includeOrigin, setIncludeOrigin] = useState(false);
 
   const { data: mappedData, headers } = useMemo(() => {
-    const result = !activePreset
-      ? { data: rawData, headers: rawHeaders }
-      : applyPreset(rawData, rawHeaders, activePreset);
+    let result: { data: Record<string, string>[]; headers: string[] };
+
+    if (!resolvedMapping) {
+      result = { data: rawData, headers: rawHeaders };
+    } else if (resolvedMapping.kind === "preset") {
+      result = applyPreset(rawData, rawHeaders, resolvedMapping.preset, resolvedMapping.options);
+    } else {
+      result = applyColumnMapping(rawData, resolvedMapping.mapping);
+    }
+
     let counter = 0;
     const keyed = result.data.map((row): Record<string, string> => ({
       ...row,
       _rowKey: String(counter++),
     }));
     return { data: keyed, headers: result.headers };
-  }, [rawData, rawHeaders, activePreset]);
+  }, [rawData, rawHeaders, resolvedMapping]);
 
   const canAnalyze = headers.includes("source") && headers.includes("destination");
 
@@ -229,6 +255,10 @@ export function useRedirectAnalysis(
   };
 }
 
+// ---------------------------------------------------------------------------
+// useIssueFilterOptions
+// ---------------------------------------------------------------------------
+
 export function useIssueFilterOptions(stats: ReturnType<typeof useRedirectAnalysis>["stats"]) {
   return useMemo(() => {
     if (!stats?.issueCounts) return undefined;
@@ -245,6 +275,10 @@ export function useIssueFilterOptions(stats: ReturnType<typeof useRedirectAnalys
     ];
   }, [stats]);
 }
+
+// ---------------------------------------------------------------------------
+// useTableColumns
+// ---------------------------------------------------------------------------
 
 export function useTableColumns(headers: string[], canAnalyze: boolean) {
   return useMemo(() => {
@@ -279,7 +313,27 @@ export function useTableColumns(headers: string[], canAnalyze: boolean) {
   }, [headers, canAnalyze]);
 }
 
-export function usePresetMismatch(activePreset: CsvPreset | null, rawHeaders: string[]) {
+// ---------------------------------------------------------------------------
+// useActiveMapping — display info about the active mapping
+// ---------------------------------------------------------------------------
+
+export function useActiveMappingLabel(resolvedMapping: ResolvedMapping | null): string | null {
+  return useMemo(() => {
+    if (!resolvedMapping) return null;
+    if (resolvedMapping.kind === "preset") return resolvedMapping.preset.name;
+    const { source, destination } = resolvedMapping.mapping;
+    return `${source.columns.join("+")} → ${destination.columns.join("+")}`;
+  }, [resolvedMapping]);
+}
+
+// ---------------------------------------------------------------------------
+// Legacy: usePresetMismatch (kept for any future use)
+// ---------------------------------------------------------------------------
+
+export function usePresetMismatch(
+  activePreset: CsvPreset | null,
+  rawHeaders: string[]
+): boolean {
   return useMemo(() => {
     if (!activePreset || rawHeaders.length === 0) return false;
     if (activePreset.transform) {
@@ -291,3 +345,8 @@ export function usePresetMismatch(activePreset: CsvPreset | null, rawHeaders: st
     return !rawHeaders.includes(columns.source) || !rawHeaders.includes(columns.destination);
   }, [activePreset, rawHeaders]);
 }
+
+// ---------------------------------------------------------------------------
+// Type re-export for convenience
+// ---------------------------------------------------------------------------
+export type { ColumnMapping, CsvPreset };
