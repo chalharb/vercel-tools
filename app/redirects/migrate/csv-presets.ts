@@ -169,14 +169,13 @@ export const CSV_PRESETS: CsvPreset[] = [
         .split("\n")
         .filter((line) => !line.startsWith("#"))
         .join("\n"),
-    transform: (row, options) => {
+    transform: (row) => {
       const scheme = row["scheme"] || "https";
       const host = row["host"];
       const pathField = row["path"] || "";
       const matchUrl = row["matchURL"];
       const destination = row["result.redirectURL"];
       const statusCode = row["result.statusCode"] || "301";
-      const includeSchemeAndDomain = options?.["includeSchemeAndDomain"] !== false;
 
       if (!destination) return null;
 
@@ -190,8 +189,7 @@ export const CSV_PRESETS: CsvPreset[] = [
       // Expand each into its own row so the analysis can detect
       // trailing-slash duplicates and conflicts.
       const paths = pathField.trim().split(/\s+/);
-      const buildSource = (p: string) =>
-        includeSchemeAndDomain ? `${scheme}://${host}${p}` : p;
+      const buildSource = (p: string) => `${scheme}://${host}${p}`;
 
       if (paths.length === 1) {
         return { source: buildSource(paths[0]), destination, statusCode };
@@ -202,15 +200,6 @@ export const CSV_PRESETS: CsvPreset[] = [
         statusCode,
       }));
     },
-    optionDefs: [
-      {
-        key: "includeSchemeAndDomain",
-        label: "Include scheme and domain in source",
-        description: "e.g. https://example.com/path instead of /path",
-        type: "boolean",
-        defaultValue: true,
-      },
-    ],
   },
 ];
 

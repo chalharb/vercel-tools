@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CheckIcon, PlusIcon, SaveIcon, XIcon, ZapIcon } from "lucide-react";
+import { CheckIcon, GlobeIcon, PlusIcon, SaveIcon, XIcon, ZapIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -65,7 +65,7 @@ interface ColumnMappingDialogProps {
   /** Called when the user cancels the dialog */
   onCancel: () => void;
   /** Called when the user confirms a mapping */
-  onConfirm: (resolved: ResolvedMapping, save: { shouldSave: boolean; name: string }) => void;
+  onConfirm: (resolved: ResolvedMapping, save: { shouldSave: boolean; name: string }, options: { includeOrigin: boolean }) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -105,17 +105,34 @@ function updateSeparator(spec: ColumnFieldSpec, i: number, value: string): Colum
 // Helpers
 // ---------------------------------------------------------------------------
 
+function stripOriginFromRows(rows: Record<string, string>[]): Record<string, string>[] {
+  return rows.map((row) => {
+    const src = row["source"] ?? "";
+    try {
+      const u = new URL(src);
+      return { ...row, source: u.pathname + u.search + u.hash };
+    } catch {
+      return row;
+    }
+  });
+}
+
 function buildPreviewRows(
   rawRows: Record<string, string>[],
   resolved: ResolvedMapping | null,
-  rawHeaders: string[]
+  rawHeaders: string[],
+  includeOrigin: boolean
 ): Record<string, string>[] {
   if (!resolved) return rawRows.slice(0, 4);
+  let data: Record<string, string>[];
   if (resolved.kind === "preset") {
-    const { data } = applyPreset(rawRows, rawHeaders, resolved.preset, resolved.options);
-    return data.slice(0, 4);
+    data = applyPreset(rawRows, rawHeaders, resolved.preset, resolved.options).data;
+  } else {
+    data = applyColumnMapping(rawRows, resolved.mapping).data;
   }
-  const { data } = applyColumnMapping(rawRows, resolved.mapping);
+  if (!includeOrigin) {
+    data = stripOriginFromRows(data);
+  }
   return data.slice(0, 4);
 }
 
@@ -282,6 +299,9 @@ export function ColumnMappingDialog({
   // Preset options (for complex presets with optionDefs)
   const [presetOptions, setPresetOptions] = useState<PresetOptions>({});
 
+  // Keep full URLs in source (beta feature for fully qualified redirect sources)
+  const [includeOrigin, setIncludeOrigin] = useState(false);
+
   // Save toggle
   const [shouldSave, setShouldSave] = useState(false);
   const [saveName, setSaveName] = useState("");
@@ -431,8 +451,8 @@ export function ColumnMappingDialog({
   }, [quickMapValue]);
 
   const previewRows = useMemo(
-    () => buildPreviewRows(rawPreview, resolvedMapping, rawHeaders),
-    [rawPreview, resolvedMapping, rawHeaders]
+    () => buildPreviewRows(rawPreview, resolvedMapping, rawHeaders, includeOrigin),
+    [rawPreview, resolvedMapping, rawHeaders, includeOrigin]
   );
 
   const previewHeaders = useMemo(() => {
@@ -446,7 +466,7 @@ export function ColumnMappingDialog({
 
   function handleConfirm() {
     if (!resolvedMapping || !canConfirm) return;
-    onConfirm(resolvedMapping, { shouldSave, name: saveName.trim() || "Custom Mapping" });
+    onConfirm(resolvedMapping, { shouldSave, name: saveName.trim() || "Custom Mapping" }, { includeOrigin });
   }
 
   // ------------------------------------------------------------------
@@ -706,6 +726,26 @@ export function ColumnMappingDialog({
                 </p>
               )}
             </div>
+          )}
+
+          {/* ---- Full URL option ---- */}
+          {canConfirm && (
+            <label className="flex cursor-pointer items-start gap-2.5 text-sm">
+              <Checkbox
+                checked={includeOrigin}
+                onCheckedChange={(v) => setIncludeOrigin(v === true)}
+              />
+              <div className="flex flex-col gap-0.5">
+                <span className="flex items-center gap-1.5">
+                  <GlobeIcon className="size-3.5" />
+                  Keep full URLs in source
+                  <span className="text-xs text-muted-foreground/60">(beta)</span>
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  Preserve scheme and domain (e.g. https://example.com/path instead of /path)
+                </span>
+              </div>
+            </label>
           )}
 
           {/* ---- Save mapping ---- */}

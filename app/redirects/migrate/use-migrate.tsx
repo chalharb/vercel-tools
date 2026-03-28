@@ -124,35 +124,37 @@ export function useRedirectAnalysis(
       result = applyColumnMapping(rawData, resolvedMapping.mapping);
     }
 
+    const canMap =
+      result.headers.includes("source") && result.headers.includes("destination");
+
+    // Strip scheme+host from source when includeOrigin is off
+    const processed = !includeOrigin && canMap
+      ? result.data.map((row) => {
+          const src = row["source"] ?? "";
+          try {
+            const u = new URL(src);
+            return { ...row, source: u.pathname + u.search + u.hash };
+          } catch {
+            return row;
+          }
+        })
+      : result.data;
+
     let counter = 0;
-    const keyed = result.data.map((row): Record<string, string> => ({
+    const keyed = processed.map((row): Record<string, string> => ({
       ...row,
       _rowKey: String(counter++),
     }));
     return { data: keyed, headers: result.headers };
-  }, [rawData, rawHeaders, resolvedMapping]);
+  }, [rawData, rawHeaders, resolvedMapping, includeOrigin]);
 
   const canAnalyze = headers.includes("source") && headers.includes("destination");
 
-  // Strip scheme+host from source when includeOrigin is off
-  const originStripped = useMemo(() => {
-    if (includeOrigin || !canAnalyze) return mappedData;
-    return mappedData.map((row) => {
-      const src = row["source"] ?? "";
-      try {
-        const u = new URL(src);
-        return { ...row, source: u.pathname + u.search + u.hash };
-      } catch {
-        return row;
-      }
-    });
-  }, [mappedData, includeOrigin, canAnalyze]);
-
   const data = useMemo(() => {
-    let result = originStripped;
+    let result = mappedData;
     if (canAnalyze && appliedActions.size > 0) {
       if (appliedActions.has("drop-trailing-slashes")) {
-        result = result.filter((row) => {
+        result = result.filter((row: Record<string, string>) => {
           const src = row["source"] ?? "";
           try {
             const u = new URL(src);
@@ -164,7 +166,7 @@ export function useRedirectAnalysis(
       }
       if (appliedActions.has("drop-redundant-duplicates")) {
         const seen = new Set<string>();
-        result = result.filter((row) => {
+        result = result.filter((row: Record<string, string>) => {
           const key = `${row["source"]}→${row["destination"]}`;
           if (seen.has(key)) return false;
           seen.add(key);
@@ -173,10 +175,10 @@ export function useRedirectAnalysis(
       }
     }
     if (manuallyDeletedKeys.size > 0) {
-      result = result.filter((row) => !manuallyDeletedKeys.has(row._rowKey));
+      result = result.filter((row: Record<string, string>) => !manuallyDeletedKeys.has(row._rowKey));
     }
     return result;
-  }, [originStripped, appliedActions, canAnalyze, manuallyDeletedKeys]);
+  }, [mappedData, appliedActions, canAnalyze, manuallyDeletedKeys]);
 
   const issuesByRow = useMemo(() => {
     if (!canAnalyze || data.length === 0) return [];

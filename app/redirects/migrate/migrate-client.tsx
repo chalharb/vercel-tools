@@ -76,9 +76,10 @@ export function MigrateClient() {
   // Dialog: user confirmed a mapping
   // ------------------------------------------------------------------
   const handleMappingConfirm = useCallback(
-    (resolved: ResolvedMapping, save: { shouldSave: boolean; name: string }) => {
+    (resolved: ResolvedMapping, save: { shouldSave: boolean; name: string }, options: { includeOrigin: boolean }) => {
       setResolvedMapping(resolved);
       setMappingDialogOpen(false);
+      analysis.setIncludeOrigin(options.includeOrigin);
 
       // If it's a preset with preprocess, re-parse with preprocessing applied
       if (resolved.kind === "preset" && resolved.preset.preprocess && pendingFileRef.current) {
@@ -92,7 +93,7 @@ export function MigrateClient() {
 
       pendingFileRef.current = null;
     },
-    [csv, saveMapping]
+    [csv, saveMapping, analysis]
   );
 
   // ------------------------------------------------------------------
