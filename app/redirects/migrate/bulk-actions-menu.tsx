@@ -1,3 +1,5 @@
+"use client";
+
 import { ChevronDownIcon, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {

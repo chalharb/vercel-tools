@@ -17,11 +17,11 @@ import {
 import { cn } from "@/lib/utils";
 
 const redirectItems: { title: string; href: string; description: string }[] = [
-  // {
-  //   title: "Manager",
-  //   href: "/redirects",
-  //   description: "View and manage Vercel redirects",
-  // },
+  {
+    title: "Manager",
+    href: "/redirects",
+    description: "View and manage Vercel redirects",
+  },
   {
     title: "Migration Tool",
     href: "/redirects/migrate",

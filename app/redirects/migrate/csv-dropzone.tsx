@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useState } from "react";
 import { ChevronDownIcon, FileTextIcon, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
