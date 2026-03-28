@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import Papa from "papaparse";
 import { buildColumnsFromHeaders } from "@/components/data-table";
@@ -90,7 +90,6 @@ export function useRedirectAnalysis(
   rawHeaders: string[],
   activePreset: CsvPreset | null
 ) {
-  const rowKeyCounter = useRef(0);
   const [appliedActions, setAppliedActions] = useState<Set<string>>(new Set());
   const [manuallyDeletedKeys, setManuallyDeletedKeys] = useState<Set<string>>(new Set());
   const [includeOrigin, setIncludeOrigin] = useState(false);
@@ -99,10 +98,10 @@ export function useRedirectAnalysis(
     const result = !activePreset
       ? { data: rawData, headers: rawHeaders }
       : applyPreset(rawData, rawHeaders, activePreset);
-    rowKeyCounter.current = 0;
+    let counter = 0;
     const keyed = result.data.map((row): Record<string, string> => ({
       ...row,
-      _rowKey: String(rowKeyCounter.current++),
+      _rowKey: String(counter++),
     }));
     return { data: keyed, headers: result.headers };
   }, [rawData, rawHeaders, activePreset]);
@@ -183,7 +182,9 @@ export function useRedirectAnalysis(
   }, [data, issuesByRow, canAnalyze]);
 
   const enrichedDataRef = useRef(enrichedData);
-  enrichedDataRef.current = enrichedData;
+  useEffect(() => {
+    enrichedDataRef.current = enrichedData;
+  }, [enrichedData]);
 
   const handleDeleteRows = useCallback((indices: number[]) => {
     const currentData = enrichedDataRef.current;
@@ -256,6 +257,7 @@ export function useTableColumns(headers: string[], canAnalyze: boolean) {
       header: "Issues",
       size: 280,
       minSize: 120,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- custom filter registered at table level
       filterFn: "facet" as any,
       cell: ({ getValue }) => {
         const raw = getValue() as string;
