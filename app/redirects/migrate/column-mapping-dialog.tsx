@@ -1,6 +1,13 @@
 "use client";
 
-import { CheckIcon, GlobeIcon, SaveIcon, ZapIcon } from "lucide-react";
+import {
+  CheckIcon,
+  GlobeIcon,
+  InfoIcon,
+  SaveIcon,
+  ZapIcon,
+} from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -26,7 +33,11 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { CSV_PRESETS, type PresetOptionDef } from "./csv-presets";
-import { type ColumnMappingDialogProps, NO_COLUMN, STATUS_CODE_OPTIONS } from "./column-mapping-types";
+import {
+  type ColumnMappingDialogProps,
+  NO_COLUMN,
+  STATUS_CODE_OPTIONS,
+} from "./column-mapping-types";
 import { savedMappingLabel } from "./column-mapping-utils";
 import { ColumnFieldEditor } from "./column-field-editor";
 import { useColumnMappingDialog } from "./use-column-mapping-dialog";
@@ -38,25 +49,41 @@ export function ColumnMappingDialog({
   open,
   rawHeaders,
   rawPreview,
+  rawText,
   fileName,
   savedMappings,
   presetHint,
   onCancel,
   onConfirm,
 }: ColumnMappingDialogProps) {
-  const state = useColumnMappingDialog({ open, rawHeaders, rawPreview, savedMappings, presetHint });
+  const state = useColumnMappingDialog({
+    open,
+    rawHeaders,
+    rawPreview,
+    rawText,
+    savedMappings,
+    presetHint,
+  });
 
   function handleConfirm() {
     if (!state.resolvedMapping || !state.canConfirm) return;
     onConfirm(
       state.resolvedMapping,
-      { shouldSave: state.shouldSave, name: state.saveName.trim() || "Custom Mapping" },
+      {
+        shouldSave: state.shouldSave,
+        name: state.saveName.trim() || "Custom Mapping",
+      },
       { includeOrigin: state.includeOrigin },
     );
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) onCancel(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) onCancel();
+      }}
+    >
       <DialogContent className="sm:max-w-2xl top-[10vh] translate-y-0 max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Column Mapping</DialogTitle>
@@ -65,6 +92,17 @@ export function ColumnMappingDialog({
             <span className="font-medium text-foreground">{fileName}</span> to
             the fields Vercel Bulk Redirects expect.
           </DialogDescription>
+          <Alert className="mt-2 border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50">
+            <InfoIcon />
+            <AlertTitle>Functionality Limitation</AlertTitle>
+            <AlertDescription>
+              Vercel's Bulk Redirects does not currently support{" "}
+              <a href="https://vercel.com/docs/routing/redirects/bulk-redirects#limits-and-pricing">
+                wildcards or pattern matching
+              </a>
+              .
+            </AlertDescription>
+          </Alert>
         </DialogHeader>
 
         <div className="flex flex-col gap-5">
@@ -77,7 +115,10 @@ export function ColumnMappingDialog({
                 — auto-fill from a known redirect export format
               </span>
             </div>
-            <Select value={state.quickMapValue} onValueChange={state.handleQuickMapChange}>
+            <Select
+              value={state.quickMapValue}
+              onValueChange={state.handleQuickMapChange}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Choose a known format (optional)..." />
               </SelectTrigger>
@@ -96,7 +137,9 @@ export function ColumnMappingDialog({
                         </SelectPrimitive.ItemIndicator>
                       </span>
                       <div className="flex flex-col">
-                        <SelectPrimitive.ItemText>{preset.name}</SelectPrimitive.ItemText>
+                        <SelectPrimitive.ItemText>
+                          {preset.name}
+                        </SelectPrimitive.ItemText>
                         <span className="text-xs text-muted-foreground">
                           {preset.description}
                         </span>
@@ -121,7 +164,9 @@ export function ColumnMappingDialog({
                             </SelectPrimitive.ItemIndicator>
                           </span>
                           <div className="flex flex-col">
-                            <SelectPrimitive.ItemText>{saved.name}</SelectPrimitive.ItemText>
+                            <SelectPrimitive.ItemText>
+                              {saved.name}
+                            </SelectPrimitive.ItemText>
                             <span className="text-xs text-muted-foreground">
                               {savedMappingLabel(saved.mapping)}
                             </span>
@@ -148,8 +193,8 @@ export function ColumnMappingDialog({
                   </span>
                   <span className="text-muted-foreground">
                     This format uses special parsing logic (comment stripping,
-                    directive conversion, or multi-path expansion). Columns will be
-                    mapped automatically — no manual selection needed.
+                    directive conversion, or multi-path expansion). Columns will
+                    be mapped automatically — no manual selection needed.
                   </span>
                 </div>
               </div>
@@ -164,25 +209,30 @@ export function ColumnMappingDialog({
                     >
                       <Checkbox
                         checked={state.presetOptions[def.key] !== false}
-                        onCheckedChange={(v) => state.handlePresetOptionChange(def.key, v === true)}
+                        onCheckedChange={(v) =>
+                          state.handlePresetOptionChange(def.key, v === true)
+                        }
                       />
                       <div className="flex flex-col gap-0.5">
                         <span>{def.label}</span>
                         {def.description && (
-                          <span className="text-xs text-muted-foreground">{def.description}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {def.description}
+                          </span>
                         )}
                       </div>
                     </label>
-                  ) : null
+                  ) : null,
               )}
             </div>
           ) : (
             <div className="flex flex-col gap-3">
               <span className="text-sm font-medium">Map Columns</span>
               <p className="text-xs text-muted-foreground -mt-1">
-                Detected {rawHeaders.length} column{rawHeaders.length !== 1 ? "s" : ""} in your
-                file. Use &ldquo;Combine columns&rdquo; to concatenate multiple columns into a
-                single field.
+                Detected {rawHeaders.length} column
+                {rawHeaders.length !== 1 ? "s" : ""} in your file. Use
+                &ldquo;Combine columns&rdquo; to concatenate multiple columns
+                into a single field.
               </p>
               <div className="grid grid-cols-[1fr_1fr_1fr] gap-3">
                 <ColumnFieldEditor
@@ -215,14 +265,18 @@ export function ColumnMappingDialog({
                     <SelectContent position="popper">
                       <SelectGroup>
                         <SelectItem value={NO_COLUMN}>
-                          <span className="text-muted-foreground">None — use default</span>
+                          <span className="text-muted-foreground">
+                            None — use default
+                          </span>
                         </SelectItem>
                       </SelectGroup>
                       <SelectSeparator />
                       <SelectGroup>
                         <SelectLabel>From column</SelectLabel>
                         {rawHeaders.map((h) => (
-                          <SelectItem key={h} value={h}>{h}</SelectItem>
+                          <SelectItem key={h} value={h}>
+                            {h}
+                          </SelectItem>
                         ))}
                       </SelectGroup>
                     </SelectContent>
@@ -233,7 +287,9 @@ export function ColumnMappingDialog({
               {/* Default status code picker */}
               {state.manualStatusCode === NO_COLUMN && (
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-muted-foreground shrink-0">Default status code:</span>
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    Default status code:
+                  </span>
                   <div className="flex gap-1.5">
                     {STATUS_CODE_OPTIONS.map((code) => (
                       <button
@@ -242,7 +298,13 @@ export function ColumnMappingDialog({
                         onClick={() => state.setManualDefaultStatus(code)}
                         className="cursor-pointer"
                       >
-                        <Badge variant={state.manualDefaultStatus === code ? "default" : "outline"}>
+                        <Badge
+                          variant={
+                            state.manualDefaultStatus === code
+                              ? "default"
+                              : "outline"
+                          }
+                        >
                           {code}
                         </Badge>
                       </button>
@@ -281,7 +343,9 @@ export function ColumnMappingDialog({
                             title={row[h] ?? ""}
                           >
                             {row[h] ?? (
-                              <span className="italic text-muted-foreground/50">—</span>
+                              <span className="italic text-muted-foreground/50">
+                                —
+                              </span>
                             )}
                           </td>
                         ))}
@@ -293,8 +357,8 @@ export function ColumnMappingDialog({
               {!state.canConfirm && rawPreview.length > 0 && (
                 <p className="text-xs text-muted-foreground">
                   Map at least <span className="font-medium">source</span> and{" "}
-                  <span className="font-medium">destination</span> columns to see the mapped
-                  preview.
+                  <span className="font-medium">destination</span> columns to
+                  see the mapped preview.
                 </p>
               )}
             </div>
@@ -311,10 +375,13 @@ export function ColumnMappingDialog({
                 <span className="flex items-center gap-1.5">
                   <GlobeIcon className="size-3.5" />
                   Keep full URLs in source
-                  <span className="text-xs text-muted-foreground/60">(beta)</span>
+                  <span className="text-xs text-muted-foreground/60">
+                    (beta)
+                  </span>
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  Preserve scheme and domain (e.g. https://example.com/path instead of /path)
+                  Preserve scheme and domain (e.g. https://example.com/path
+                  instead of /path)
                 </span>
               </div>
             </label>

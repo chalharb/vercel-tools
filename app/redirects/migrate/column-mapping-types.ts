@@ -12,6 +12,8 @@ export interface ColumnMappingDialogProps {
   rawHeaders: string[];
   /** A sample of raw rows (used for the preview table) */
   rawPreview: Record<string, string>[];
+  /** Original raw file text — needed so preprocess-only presets can re-parse for preview */
+  rawText?: string;
   /** File name for display */
   fileName: string;
   /** Saved custom mappings from localStorage */

@@ -1,3 +1,4 @@
+import Papa from "papaparse";
 import {
   applyColumnMapping,
   applyPreset,
@@ -47,12 +48,27 @@ export function buildPreviewRows(
   rawRows: Record<string, string>[],
   resolved: ResolvedMapping | null,
   rawHeaders: string[],
-  includeOrigin: boolean
+  includeOrigin: boolean,
+  rawText?: string,
 ): Record<string, string>[] {
   if (!resolved) return rawRows.slice(0, 4);
   let data: Record<string, string>[];
   if (resolved.kind === "preset") {
-    data = applyPreset(rawRows, rawHeaders, resolved.preset, resolved.options).data;
+    const { preset } = resolved;
+    // Preprocess-only presets (e.g. .htaccess) convert raw text into CSV.
+    // The rawRows were parsed before preprocessing, so they're unusable.
+    // Re-parse from the preprocessed text instead.
+    if (preset.preprocess && !preset.transform && !preset.columns && rawText) {
+      const csv = preset.preprocess(rawText);
+      const parsed = Papa.parse<Record<string, string>>(csv, {
+        header: true,
+        delimiter: ",",
+        skipEmptyLines: true,
+      });
+      data = parsed.data;
+    } else {
+      data = applyPreset(rawRows, rawHeaders, resolved.preset, resolved.options).data;
+    }
   } else {
     data = applyColumnMapping(rawRows, resolved.mapping).data;
   }

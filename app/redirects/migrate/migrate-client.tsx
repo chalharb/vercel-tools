@@ -328,6 +328,7 @@ export function MigrateClient() {
         open={mappingDialogOpen}
         rawHeaders={csv.rawHeaders}
         rawPreview={csv.rawData.slice(0, 4)}
+        rawText={originalTextRef.current?.text}
         fileName={csv.fileName ?? ""}
         savedMappings={savedMappings}
         presetHint={mappingDialogHint}

@@ -14,6 +14,7 @@ interface UseColumnMappingDialogArgs {
   open: boolean;
   rawHeaders: string[];
   rawPreview: Record<string, string>[];
+  rawText?: string;
   savedMappings: SavedMapping[];
   presetHint?: ResolvedMapping;
 }
@@ -22,6 +23,7 @@ export function useColumnMappingDialog({
   open,
   rawHeaders,
   rawPreview,
+  rawText,
   savedMappings,
   presetHint,
 }: UseColumnMappingDialogArgs) {
@@ -201,8 +203,8 @@ export function useColumnMappingDialog({
   }, [quickMapValue]);
 
   const previewRows = useMemo(
-    () => buildPreviewRows(rawPreview, resolvedMapping, rawHeaders, includeOrigin),
-    [rawPreview, resolvedMapping, rawHeaders, includeOrigin]
+    () => buildPreviewRows(rawPreview, resolvedMapping, rawHeaders, includeOrigin, rawText),
+    [rawPreview, resolvedMapping, rawHeaders, includeOrigin, rawText]
   );
 
   const previewHeaders = useMemo(() => {
