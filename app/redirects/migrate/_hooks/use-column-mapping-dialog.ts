@@ -5,18 +5,21 @@ import {
   type ColumnMapping,
   type PresetOptionDef,
   type PresetOptions,
-} from "./csv-presets";
+} from "../_components/csv-presets";
 import {
   detectMapping,
   singleSpec,
   type SavedMapping,
 } from "./use-column-mapping";
-import { type ResolvedMapping, NO_COLUMN } from "./column-mapping-types";
+import {
+  type ResolvedMapping,
+  NO_COLUMN,
+} from "../_components/column-mapping-types";
 import {
   buildPreviewRows,
   EMPTY_SPEC,
   isMappingComplete,
-} from "./column-mapping-utils";
+} from "../_components/column-mapping-utils";
 
 interface UseColumnMappingDialogArgs {
   open: boolean;

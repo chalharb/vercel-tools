@@ -40,7 +40,7 @@ import {
 } from "./column-mapping-types";
 import { savedMappingLabel } from "./column-mapping-utils";
 import { ColumnFieldEditor } from "./column-field-editor";
-import { useColumnMappingDialog } from "./use-column-mapping-dialog";
+import { useColumnMappingDialog } from "../_hooks/use-column-mapping-dialog";
 
 export type { ResolvedMapping } from "./column-mapping-types";
 export type { ColumnMappingDialogProps } from "./column-mapping-types";

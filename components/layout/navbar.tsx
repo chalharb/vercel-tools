@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ThemeToggle } from "@/components/blocks/theme/theme-toggle";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { ToolCase } from "lucide-react";
 import {
   NavigationMenu,

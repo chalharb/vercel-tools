@@ -16,8 +16,8 @@ import {
   applyPreset,
   type ColumnMapping,
   type CsvPreset,
-} from "./csv-presets";
-import type { ResolvedMapping } from "./column-mapping-dialog";
+} from "../_components/csv-presets";
+import type { ResolvedMapping } from "../_components/column-mapping-dialog";
 
 // ---------------------------------------------------------------------------
 // useCsvParser

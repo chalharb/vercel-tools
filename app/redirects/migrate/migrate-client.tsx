@@ -15,15 +15,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
-import { CSV_PRESETS } from "./csv-presets";
-import { CsvDropzone } from "./csv-dropzone";
-import { SummaryCard } from "./summary-card";
-import { BulkActionsMenu } from "./bulk-actions-menu";
+import { CSV_PRESETS } from "./_components/csv-presets";
+import { CsvDropzone } from "./_components/csv-dropzone";
+import { SummaryCard } from "./_components/summary-card";
+import { BulkActionsMenu } from "./_components/bulk-actions-menu";
 import {
   ColumnMappingDialog,
   type ResolvedMapping,
-} from "./column-mapping-dialog";
-import { ImportDialog } from "./import-dialog";
+} from "./_components/column-mapping-dialog";
+import { ImportDialog } from "./_components/import-dialog";
 import type { CsvExample } from "./examples";
 import {
   useCsvParser,
@@ -31,8 +31,8 @@ import {
   useIssueFilterOptions,
   useTableColumns,
   useActiveMappingLabel,
-} from "./use-migrate";
-import { useSavedMappings } from "./use-column-mapping";
+} from "./_hooks/use-migrate";
+import { useSavedMappings } from "./_hooks/use-column-mapping";
 
 export function MigrateClient() {
   // Resolved mapping (set after the dialog is confirmed)

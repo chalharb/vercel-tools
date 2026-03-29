@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CSV_EXAMPLES, type CsvExample } from "./examples";
+import { CSV_EXAMPLES, type CsvExample } from "../examples";
 
 interface CsvDropzoneProps {
   onFile: (file: File) => void;

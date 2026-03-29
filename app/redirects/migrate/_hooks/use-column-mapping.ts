@@ -6,7 +6,7 @@ import {
   type ColumnFieldSpec,
   type ColumnMapping,
   type CsvPreset,
-} from "./csv-presets";
+} from "../_components/csv-presets";
 
 const STORAGE_KEY = "vercel-tools:saved-column-mappings";
 

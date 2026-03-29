@@ -3,7 +3,7 @@ import withExtrasCsv from "./with-extras.csv";
 import withIssuesCsv from "./with-issues.csv";
 import akamaiCsv from "./akamai.csv";
 import htaccess from "./.htaccess";
-import type { ResolvedMapping } from "../column-mapping-dialog";
+import type { ResolvedMapping } from "../_components/column-mapping-dialog";
 
 export interface CsvExample {
   id: string;
