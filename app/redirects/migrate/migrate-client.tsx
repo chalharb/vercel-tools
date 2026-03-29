@@ -193,9 +193,9 @@ export function MigrateClient() {
   // ------------------------------------------------------------------
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Redirect Migration Tool</h1>
-        <p className="text-muted-foreground">
+      <div className="mb-10">
+        <h1 className="text-3xl font-bold tracking-tight">Redirect Migration Tool</h1>
+        <p className="mt-2 text-muted-foreground">
           Upload a CSV to bulk import redirects into Vercel.
         </p>
       </div>

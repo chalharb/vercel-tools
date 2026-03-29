@@ -8,20 +8,20 @@ const tools = [
     category: "Redirects",
     items: [
       {
-        title: "Redirect Migration Tool",
-        description:
-          "Upload a CSV, .htaccess, or Akamai Edge Redirector file to analyze, clean up, and bulk-import redirects into Vercel.",
-        href: "/redirects/migrate",
-        icon: GitMergeIcon,
+        title: "Redirect Manager",
+        description: "View, search, and manage all redirects configured on your Vercel project.",
+        href: "/redirects/manage",
+        icon: LayoutListIcon,
         status: "available" as const,
       },
       {
-        title: "Redirect Manager",
-        description: "View, search, and manage all redirects configured on your Vercel project.",
-        href: "/redirects",
-        icon: LayoutListIcon,
-        status: "coming-soon" as const,
-      },
+        title: "Redirect Migration Tool",
+        description:
+          "Upload, optimize, and import redirects from other platforms or any redirect CSV into Vercel.",
+        href: "/redirects/migrate",
+        icon: GitMergeIcon,
+        status: "available" as const,
+      }
     ],
   },
 ];

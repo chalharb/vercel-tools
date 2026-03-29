@@ -20,9 +20,9 @@ const tools = [
   {
     title: "Redirect Manager",
     description: "View, search, and manage all redirects configured on your Vercel project.",
-    href: "#",
+    href: "/redirects/manage",
     icon: LayoutListIcon,
-    status: "coming-soon" as const,
+    status: "available" as const,
   },
 ];
 

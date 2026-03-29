@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 const redirectItems: { title: string; href: string; description: string }[] = [
   {
     title: "Manager",
-    href: "/redirects",
+    href: "/redirects/manage",
     description: "View and manage Vercel redirects",
   },
   {
