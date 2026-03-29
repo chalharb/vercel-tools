@@ -11,6 +11,7 @@ import { RedirectsTableSkeleton } from "./_components/redirects-table-skeleton";
 import { RedirectDialog } from "./_components/redirect-dialog";
 import { CsvUploadDialog } from "./_components/csv-upload-dialog";
 import { VersionHistory } from "./_components/version-history";
+import { VersionCompare } from "./_components/version-compare";
 import { ProjectSelector } from "./_components/project-selector";
 import { toast } from "sonner";
 import type { VercelProject } from "@/lib/vercel";
@@ -92,6 +93,12 @@ export function RedirectsManager({
 
   // Version history
   const [historyOpen, setHistoryOpen] = useState(false);
+
+  // Version compare
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [compareVersion, setCompareVersion] = useState<RedirectVersion | null>(
+    null
+  );
 
   // We need both production and staging versions to know if staging exists
   const [productionVersion, setProductionVersion] =
@@ -642,6 +649,18 @@ export function RedirectsManager({
             onOpenChange={setHistoryOpen}
             projectId={projectId}
             onVersionAction={handleVersionAction}
+            onCompare={(version) => {
+              setCompareVersion(version);
+              setCompareOpen(true);
+            }}
+          />
+
+          <VersionCompare
+            open={compareOpen}
+            onOpenChange={setCompareOpen}
+            projectId={projectId}
+            compareVersion={compareVersion}
+            productionVersion={productionVersion}
           />
     </div>
   );

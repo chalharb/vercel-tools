@@ -30,6 +30,7 @@ interface VersionHistoryProps {
     versionId: string,
     action: "promote" | "restore" | "discard"
   ) => void;
+  onCompare?: (version: RedirectVersion) => void;
 }
 
 export function VersionHistory({
@@ -37,6 +38,7 @@ export function VersionHistory({
   onOpenChange,
   projectId,
   onVersionAction,
+  onCompare,
 }: VersionHistoryProps) {
   const [versions, setVersions] = useState<RedirectVersion[]>([]);
   const [loading, setLoading] = useState(false);
@@ -90,6 +92,15 @@ export function VersionHistory({
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    {!version.isLive && onCompare && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onCompare(version)}
+                      >
+                        Compare
+                      </Button>
+                    )}
                     {version.isStaging && (
                       <>
                         <Button
