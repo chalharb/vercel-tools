@@ -28,7 +28,7 @@ interface VersionHistoryProps {
   projectId: string;
   onVersionAction: (
     versionId: string,
-    action: "promote" | "restore" | "discard"
+    action: "promote" | "restore" | "discard",
   ) => void;
   onCompare?: (version: RedirectVersion) => void;
 }
@@ -113,18 +113,14 @@ export function VersionHistory({
                       <>
                         <Button
                           size="sm"
-                          onClick={() =>
-                            onVersionAction(version.id, "promote")
-                          }
+                          onClick={() => onVersionAction(version.id, "promote")}
                         >
                           Publish
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() =>
-                            onVersionAction(version.id, "discard")
-                          }
+                          onClick={() => onVersionAction(version.id, "discard")}
                         >
                           Discard
                         </Button>
@@ -134,9 +130,7 @@ export function VersionHistory({
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() =>
-                          onVersionAction(version.id, "restore")
-                        }
+                        onClick={() => onVersionAction(version.id, "restore")}
                       >
                         Restore
                       </Button>

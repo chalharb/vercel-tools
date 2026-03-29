@@ -58,7 +58,7 @@ export function Navbar() {
               <NavigationMenuItem>
                 <NavigationMenuTrigger
                   className={cn(
-                    pathname.startsWith("/redirects") && "bg-muted/50"
+                    pathname.startsWith("/redirects") && "bg-muted/50",
                   )}
                 >
                   Redirects
@@ -78,7 +78,6 @@ export function Navbar() {
                   </ul>
                 </NavigationMenuContent>
               </NavigationMenuItem>
-              
             </NavigationMenuList>
           </NavigationMenu>
         </div>

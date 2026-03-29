@@ -11,7 +11,10 @@ export const ISSUE_LABELS: Record<RedirectIssue, string> = {
   "trailing-slash-conflict": "Trailing Slash Conflict",
 };
 
-export const ISSUE_VARIANTS: Record<RedirectIssue, "destructive" | "secondary" | "outline"> = {
+export const ISSUE_VARIANTS: Record<
+  RedirectIssue,
+  "destructive" | "secondary" | "outline"
+> = {
   "conflicting-duplicate": "destructive",
   "trailing-slash-conflict": "destructive",
   "redundant-duplicate": "secondary",
@@ -42,7 +45,7 @@ function hasTrailingSlash(url: string): boolean {
 export function analyzeRedirects(
   rows: Record<string, string>[],
   sourceKey = "source",
-  destKey = "destination"
+  destKey = "destination",
 ): RedirectIssue[][] {
   const issues: RedirectIssue[][] = rows.map(() => []);
 
@@ -68,9 +71,7 @@ export function analyzeRedirects(
   for (const indices of bySource.values()) {
     if (indices.length < 2) continue;
 
-    const destinations = new Set(
-      indices.map((i) => rows[i][destKey] ?? "")
-    );
+    const destinations = new Set(indices.map((i) => rows[i][destKey] ?? ""));
 
     if (destinations.size === 1) {
       // All go to the same destination — redundant duplicates
@@ -104,7 +105,9 @@ export function analyzeRedirects(
 
     // Both slash variants exist — check if destinations match
     const slashDests = new Set(withSlash.map((i) => rows[i][destKey] ?? ""));
-    const noSlashDests = new Set(withoutSlash.map((i) => rows[i][destKey] ?? ""));
+    const noSlashDests = new Set(
+      withoutSlash.map((i) => rows[i][destKey] ?? ""),
+    );
 
     // Check if any destinations overlap (trailing slash duplicate) or differ (trailing slash conflict)
     const allSame =

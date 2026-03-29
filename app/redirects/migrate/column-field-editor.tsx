@@ -12,7 +12,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { ColumnFieldSpec } from "./csv-presets";
-import { appendColumn, removeColumn, updateSeparator } from "./column-mapping-utils";
+import {
+  appendColumn,
+  removeColumn,
+  updateSeparator,
+} from "./column-mapping-utils";
 
 interface ColumnFieldEditorProps {
   label: string;
@@ -22,7 +26,13 @@ interface ColumnFieldEditorProps {
   onChange: (spec: ColumnFieldSpec) => void;
 }
 
-export function ColumnFieldEditor({ label, required, spec, rawHeaders, onChange }: ColumnFieldEditorProps) {
+export function ColumnFieldEditor({
+  label,
+  required,
+  spec,
+  rawHeaders,
+  onChange,
+}: ColumnFieldEditorProps) {
   const [isCombining, setIsCombining] = useState(spec.columns.length > 1);
 
   // Sync isCombining when spec changes externally (e.g. preset applied)
@@ -65,14 +75,19 @@ export function ColumnFieldEditor({ label, required, spec, rawHeaders, onChange 
 
       {!isCombining ? (
         /* ---- Single column select ---- */
-        <Select value={spec.columns[0] ?? ""} onValueChange={handleSingleSelect}>
+        <Select
+          value={spec.columns[0] ?? ""}
+          onValueChange={handleSingleSelect}
+        >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Pick column…" />
           </SelectTrigger>
           <SelectContent position="popper">
             <SelectGroup>
               {rawHeaders.map((h) => (
-                <SelectItem key={h} value={h}>{h}</SelectItem>
+                <SelectItem key={h} value={h}>
+                  {h}
+                </SelectItem>
               ))}
             </SelectGroup>
           </SelectContent>
@@ -90,7 +105,9 @@ export function ColumnFieldEditor({ label, required, spec, rawHeaders, onChange 
             <div key={col}>
               {/* Column row */}
               <div className="flex items-center gap-2 px-3 py-2">
-                <span className="text-xs font-mono font-medium flex-1">{col}</span>
+                <span className="text-xs font-mono font-medium flex-1">
+                  {col}
+                </span>
                 <button
                   type="button"
                   onClick={() => onChange(removeColumn(spec, idx))}
@@ -103,10 +120,14 @@ export function ColumnFieldEditor({ label, required, spec, rawHeaders, onChange 
               {/* Separator row — shown between this column and the next */}
               {idx < spec.columns.length - 1 && (
                 <div className="flex items-center gap-2 bg-muted/40 px-3 py-1.5">
-                  <span className="text-xs text-muted-foreground shrink-0 w-16">separator</span>
+                  <span className="text-xs text-muted-foreground shrink-0 w-16">
+                    separator
+                  </span>
                   <Input
                     value={spec.separators?.[idx] ?? ""}
-                    onChange={(e) => onChange(updateSeparator(spec, idx, e.target.value))}
+                    onChange={(e) =>
+                      onChange(updateSeparator(spec, idx, e.target.value))
+                    }
                     placeholder='e.g. "://" or "/"'
                     className="h-6 text-xs font-mono"
                   />
@@ -118,7 +139,10 @@ export function ColumnFieldEditor({ label, required, spec, rawHeaders, onChange 
           {/* Add column */}
           {availableHeaders.length > 0 && (
             <div className="px-2 py-1.5">
-              <Select value="" onValueChange={(col) => onChange(appendColumn(spec, col))}>
+              <Select
+                value=""
+                onValueChange={(col) => onChange(appendColumn(spec, col))}
+              >
                 <SelectTrigger className="h-7 w-full text-xs border-dashed">
                   <span className="flex items-center gap-1 text-muted-foreground">
                     <PlusIcon className="size-3" />
@@ -128,7 +152,9 @@ export function ColumnFieldEditor({ label, required, spec, rawHeaders, onChange 
                 <SelectContent position="popper">
                   <SelectGroup>
                     {availableHeaders.map((h) => (
-                      <SelectItem key={h} value={h}>{h}</SelectItem>
+                      <SelectItem key={h} value={h}>
+                        {h}
+                      </SelectItem>
                     ))}
                   </SelectGroup>
                 </SelectContent>

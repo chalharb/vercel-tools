@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { CSV_PRESETS, type ColumnFieldSpec, type ColumnMapping, type CsvPreset } from "./csv-presets";
+import {
+  CSV_PRESETS,
+  type ColumnFieldSpec,
+  type ColumnMapping,
+  type CsvPreset,
+} from "./csv-presets";
 
 const STORAGE_KEY = "vercel-tools:saved-column-mappings";
 
@@ -61,12 +66,21 @@ function persistSavedMappings(mappings: SavedMapping[]): void {
  * Fuzzy-match a raw CSV header name to one of the three standard redirect fields.
  * Returns `"source" | "destination" | "statusCode" | null`.
  */
-function fuzzyMatchField(header: string): "source" | "destination" | "statusCode" | null {
+function fuzzyMatchField(
+  header: string,
+): "source" | "destination" | "statusCode" | null {
   const h = header.toLowerCase().replace(/[^a-z0-9]/g, "");
-  if (/^(source|from|src|origin|oldpath|oldurl|frompath|fromurl)$/.test(h)) return "source";
-  if (/^(destination|to|dest|target|newpath|newurl|topath|tourl|redirecturl|redirect)$/.test(h))
+  if (/^(source|from|src|origin|oldpath|oldurl|frompath|fromurl)$/.test(h))
+    return "source";
+  if (
+    /^(destination|to|dest|target|newpath|newurl|topath|tourl|redirecturl|redirect)$/.test(
+      h,
+    )
+  )
     return "destination";
-  if (/^(statuscode|status|code|httpcode|responsecode|redirectcode|type)$/.test(h))
+  if (
+    /^(statuscode|status|code|httpcode|responsecode|redirectcode|type)$/.test(h)
+  )
     return "statusCode";
   return null;
 }
@@ -89,7 +103,7 @@ export interface DetectionResult {
  */
 export function detectMapping(
   rawHeaders: string[],
-  savedMappings: SavedMapping[]
+  savedMappings: SavedMapping[],
 ): DetectionResult {
   const headerSet = new Set(rawHeaders);
 
@@ -150,7 +164,11 @@ export function detectMapping(
     }
   }
 
-  return { matchedPreset: null, matchedSavedMapping: null, suggestedMapping: suggested };
+  return {
+    matchedPreset: null,
+    matchedSavedMapping: null,
+    suggestedMapping: suggested,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -158,7 +176,8 @@ export function detectMapping(
 // ---------------------------------------------------------------------------
 
 export function useSavedMappings() {
-  const [savedMappings, setSavedMappings] = useState<SavedMapping[]>(loadSavedMappings);
+  const [savedMappings, setSavedMappings] =
+    useState<SavedMapping[]>(loadSavedMappings);
 
   const saveMapping = useCallback((name: string, mapping: ColumnMapping) => {
     setSavedMappings((prev) => {

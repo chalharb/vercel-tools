@@ -13,7 +13,7 @@ function getHeaders(): HeadersInit {
 
 async function vercelFetch(
   path: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<Response> {
   const url = `${VERCEL_API_BASE}${path}`;
   const res = await fetch(url, {
@@ -124,7 +124,7 @@ export async function getRedirects(
     search?: string;
     sortBy?: string;
     sortOrder?: string;
-  } = {}
+  } = {},
 ): Promise<RedirectsResponse> {
   const params = new URLSearchParams();
   const teamId = process.env.VERCEL_TEAM_ID;
@@ -145,7 +145,7 @@ export async function getRedirects(
 export async function stageRedirects(
   projectId: string,
   redirects: Redirect[],
-  options: { overwrite?: boolean; name?: string } = {}
+  options: { overwrite?: boolean; name?: string } = {},
 ): Promise<{ alias: string | null; version: RedirectVersion }> {
   const teamId = process.env.VERCEL_TEAM_ID;
   const params = new URLSearchParams();
@@ -167,7 +167,7 @@ export async function stageRedirects(
 export async function editRedirect(
   projectId: string,
   redirect: Redirect,
-  options: { name?: string; restore?: boolean } = {}
+  options: { name?: string; restore?: boolean } = {},
 ): Promise<{ alias: string | null; version: RedirectVersion }> {
   const params = new URLSearchParams();
   const teamId = process.env.VERCEL_TEAM_ID;
@@ -188,7 +188,7 @@ export async function editRedirect(
 export async function deleteRedirects(
   projectId: string,
   sources: string[],
-  options: { name?: string } = {}
+  options: { name?: string } = {},
 ): Promise<{ alias: string | null; version: RedirectVersion }> {
   const params = new URLSearchParams();
   const teamId = process.env.VERCEL_TEAM_ID;
@@ -208,7 +208,7 @@ export async function deleteRedirects(
 export async function restoreRedirects(
   projectId: string,
   sources: string[],
-  options: { name?: string } = {}
+  options: { name?: string } = {},
 ): Promise<{
   version: RedirectVersion;
   restored: string[];
@@ -227,7 +227,7 @@ export async function restoreRedirects(
         redirects: sources,
         name: options.name,
       }),
-    }
+    },
   );
   return res.json();
 }
@@ -235,7 +235,7 @@ export async function restoreRedirects(
 // ─── Versions ────────────────────────────────────────────────────────────────
 
 export async function getVersionHistory(
-  projectId: string
+  projectId: string,
 ): Promise<{ versions: RedirectVersion[] }> {
   const params = new URLSearchParams();
   const teamId = process.env.VERCEL_TEAM_ID;
@@ -243,7 +243,7 @@ export async function getVersionHistory(
   params.set("projectId", projectId);
 
   const res = await vercelFetch(
-    `/v1/bulk-redirects/versions?${params.toString()}`
+    `/v1/bulk-redirects/versions?${params.toString()}`,
   );
   return res.json();
 }
@@ -252,7 +252,7 @@ export async function updateVersion(
   projectId: string,
   versionId: string,
   action: "promote" | "restore" | "discard",
-  options: { name?: string } = {}
+  options: { name?: string } = {},
 ): Promise<VersionActionResponse> {
   const params = new URLSearchParams();
   const teamId = process.env.VERCEL_TEAM_ID;
@@ -268,7 +268,7 @@ export async function updateVersion(
         action,
         name: options.name,
       }),
-    }
+    },
   );
   return res.json();
 }

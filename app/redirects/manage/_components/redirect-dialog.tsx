@@ -46,10 +46,18 @@ export function RedirectDialog({
 }: RedirectDialogProps) {
   const isEditing = !!redirect;
   const [source, setSource] = useState(() => redirect?.source ?? "");
-  const [destination, setDestination] = useState(() => redirect?.destination ?? "");
-  const [statusCode, setStatusCode] = useState(() => String(redirect?.statusCode ?? 301));
-  const [caseSensitive, setCaseSensitive] = useState(() => redirect?.caseSensitive ?? false);
-  const [preserveQueryParams, setPreserveQueryParams] = useState(() => redirect?.preserveQueryParams ?? false);
+  const [destination, setDestination] = useState(
+    () => redirect?.destination ?? "",
+  );
+  const [statusCode, setStatusCode] = useState(() =>
+    String(redirect?.statusCode ?? 301),
+  );
+  const [caseSensitive, setCaseSensitive] = useState(
+    () => redirect?.caseSensitive ?? false,
+  );
+  const [preserveQueryParams, setPreserveQueryParams] = useState(
+    () => redirect?.preserveQueryParams ?? false,
+  );
 
   // Reset form state when the dialog opens with different data.
   // Using the React "key resets state" pattern instead: the parent should
@@ -114,7 +122,12 @@ export function RedirectDialog({
           </div>
           <div className="space-y-2">
             <Label htmlFor="statusCode">Status Code</Label>
-            <Select value={statusCode} onValueChange={(v) => { if (v) setStatusCode(v); }}>
+            <Select
+              value={statusCode}
+              onValueChange={(v) => {
+                if (v) setStatusCode(v);
+              }}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

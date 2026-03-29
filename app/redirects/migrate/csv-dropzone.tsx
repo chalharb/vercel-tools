@@ -30,7 +30,7 @@ export function CsvDropzone({ onFile, onLoadExample }: CsvDropzoneProps) {
       const file = e.dataTransfer.files[0];
       if (file) onFile(file);
     },
-    [onFile]
+    [onFile],
   );
 
   const onDragOver = useCallback((e: React.DragEvent) => {
@@ -53,7 +53,7 @@ export function CsvDropzone({ onFile, onLoadExample }: CsvDropzoneProps) {
           "flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-12 text-center cursor-pointer transition-colors",
           isDragging
             ? "border-primary bg-primary/5"
-            : "border-muted-foreground/25 hover:border-muted-foreground/50"
+            : "border-muted-foreground/25 hover:border-muted-foreground/50",
         )}
       >
         <Upload className="size-8 text-muted-foreground" />

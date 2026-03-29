@@ -3,7 +3,8 @@ import { MigrateClient } from "./migrate-client";
 
 export const metadata: Metadata = {
   title: "Redirect Migration Tool — Vercel Tools",
-  description: "Upload a CSV to analyze, clean up, and bulk-import redirects into Vercel.",
+  description:
+    "Upload a CSV to analyze, clean up, and bulk-import redirects into Vercel.",
 };
 
 export default function MigratePage() {

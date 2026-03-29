@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   if (!projectId) {
     return NextResponse.json(
       { error: "projectId is required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -45,7 +45,7 @@ export async function PUT(request: NextRequest) {
     if (!projectId) {
       return NextResponse.json(
         { error: "projectId is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
     const data = await stageRedirects(projectId, redirects, {
@@ -67,7 +67,7 @@ export async function PATCH(request: NextRequest) {
     if (!projectId) {
       return NextResponse.json(
         { error: "projectId is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
     const data = await editRedirect(projectId, redirect, { name, restore });
@@ -86,7 +86,7 @@ export async function DELETE(request: NextRequest) {
     if (!projectId) {
       return NextResponse.json(
         { error: "projectId is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
     const data = await deleteRedirects(projectId, sources, { name });

@@ -6,9 +6,17 @@ import {
   type PresetOptionDef,
   type PresetOptions,
 } from "./csv-presets";
-import { detectMapping, singleSpec, type SavedMapping } from "./use-column-mapping";
+import {
+  detectMapping,
+  singleSpec,
+  type SavedMapping,
+} from "./use-column-mapping";
 import { type ResolvedMapping, NO_COLUMN } from "./column-mapping-types";
-import { buildPreviewRows, EMPTY_SPEC, isMappingComplete } from "./column-mapping-utils";
+import {
+  buildPreviewRows,
+  EMPTY_SPEC,
+  isMappingComplete,
+} from "./column-mapping-utils";
 
 interface UseColumnMappingDialogArgs {
   open: boolean;
@@ -114,11 +122,14 @@ export function useColumnMappingDialog({
       clearMappingState();
     } else {
       setQuickMapValue("");
-      if (result.suggestedMapping.source) setSourceSpec(result.suggestedMapping.source);
-      if (result.suggestedMapping.destination) setDestSpec(result.suggestedMapping.destination);
-      if (result.suggestedMapping.statusCode) setManualStatusCode(result.suggestedMapping.statusCode);
+      if (result.suggestedMapping.source)
+        setSourceSpec(result.suggestedMapping.source);
+      if (result.suggestedMapping.destination)
+        setDestSpec(result.suggestedMapping.destination);
+      if (result.suggestedMapping.statusCode)
+        setManualStatusCode(result.suggestedMapping.statusCode);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, rawHeaders, presetHint]);
 
   // ------------------------------------------------------------------
@@ -187,13 +198,23 @@ export function useColumnMappingDialog({
       return { kind: "custom", mapping };
     }
     return null;
-  }, [quickMapValue, sourceSpec, destSpec, manualStatusCode, manualDefaultStatus, presetOptions]);
+  }, [
+    quickMapValue,
+    sourceSpec,
+    destSpec,
+    manualStatusCode,
+    manualDefaultStatus,
+    presetOptions,
+  ]);
 
   const isComplexPreset = useMemo(() => {
     if (!quickMapValue.startsWith("preset:")) return false;
     const id = quickMapValue.slice("preset:".length);
     const preset = CSV_PRESETS.find((p) => p.id === id);
-    return !!preset && (!!preset.transform || (!!preset.preprocess && !preset.columns));
+    return (
+      !!preset &&
+      (!!preset.transform || (!!preset.preprocess && !preset.columns))
+    );
   }, [quickMapValue]);
 
   const activePreset = useMemo(() => {
@@ -203,8 +224,15 @@ export function useColumnMappingDialog({
   }, [quickMapValue]);
 
   const previewRows = useMemo(
-    () => buildPreviewRows(rawPreview, resolvedMapping, rawHeaders, includeOrigin, rawText),
-    [rawPreview, resolvedMapping, rawHeaders, includeOrigin, rawText]
+    () =>
+      buildPreviewRows(
+        rawPreview,
+        resolvedMapping,
+        rawHeaders,
+        includeOrigin,
+        rawText,
+      ),
+    [rawPreview, resolvedMapping, rawHeaders, includeOrigin, rawText],
   );
 
   const previewHeaders = useMemo(() => {

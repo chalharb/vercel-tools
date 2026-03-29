@@ -6,7 +6,11 @@ interface SummaryCardProps {
   conflicts: number;
 }
 
-export function SummaryCard({ totalPaths, pathsWithIssues, conflicts }: SummaryCardProps) {
+export function SummaryCard({
+  totalPaths,
+  pathsWithIssues,
+  conflicts,
+}: SummaryCardProps) {
   return (
     <Card size="sm">
       <CardHeader>
@@ -20,11 +24,15 @@ export function SummaryCard({ totalPaths, pathsWithIssues, conflicts }: SummaryC
           </div>
           <div className="rounded-lg bg-muted/50 p-4">
             <p className="text-xs text-muted-foreground">Paths with issues</p>
-            <p className="text-2xl font-bold text-yellow-500">{pathsWithIssues.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-yellow-500">
+              {pathsWithIssues.toLocaleString()}
+            </p>
           </div>
           <div className="rounded-lg bg-muted/50 p-4">
             <p className="text-xs text-muted-foreground">Conflicts</p>
-            <p className="text-2xl font-bold text-destructive">{conflicts.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-destructive">
+              {conflicts.toLocaleString()}
+            </p>
           </div>
         </div>
       </CardContent>

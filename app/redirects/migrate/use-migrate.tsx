@@ -39,7 +39,7 @@ export function useCsvParser() {
       complete(results) {
         if (results.errors.length > 0) {
           setError(
-            `Parse error on row ${results.errors[0].row}: ${results.errors[0].message}`
+            `Parse error on row ${results.errors[0].row}: ${results.errors[0].message}`,
           );
         }
         setRawHeaders(results.meta.fields ?? []);
@@ -62,7 +62,7 @@ export function useCsvParser() {
       const processed = preset?.preprocess ? preset.preprocess(text) : text;
       parseCSV(processed, name);
     },
-    [parseCSV]
+    [parseCSV],
   );
 
   const handleFile = useCallback(
@@ -75,7 +75,9 @@ export function useCsvParser() {
         !name.endsWith(".txt") &&
         !name.endsWith(".tsv")
       ) {
-        setError("Unsupported file type. Please upload a .csv, .htaccess, or text file.");
+        setError(
+          "Unsupported file type. Please upload a .csv, .htaccess, or text file.",
+        );
         return;
       }
       const reader = new FileReader();
@@ -85,7 +87,7 @@ export function useCsvParser() {
       reader.onerror = () => setError("Failed to read file.");
       reader.readAsText(file);
     },
-    [loadText]
+    [loadText],
   );
 
   const reset = useCallback(() => {
@@ -107,10 +109,12 @@ export function useCsvParser() {
 export function useRedirectAnalysis(
   rawData: Record<string, string>[],
   rawHeaders: string[],
-  resolvedMapping: ResolvedMapping | null
+  resolvedMapping: ResolvedMapping | null,
 ) {
   const [appliedActions, setAppliedActions] = useState<Set<string>>(new Set());
-  const [manuallyDeletedKeys, setManuallyDeletedKeys] = useState<Set<string>>(new Set());
+  const [manuallyDeletedKeys, setManuallyDeletedKeys] = useState<Set<string>>(
+    new Set(),
+  );
   const [includeOrigin, setIncludeOrigin] = useState(false);
 
   const { data: mappedData, headers } = useMemo(() => {
@@ -119,36 +123,46 @@ export function useRedirectAnalysis(
     if (!resolvedMapping) {
       result = { data: rawData, headers: rawHeaders };
     } else if (resolvedMapping.kind === "preset") {
-      result = applyPreset(rawData, rawHeaders, resolvedMapping.preset, resolvedMapping.options);
+      result = applyPreset(
+        rawData,
+        rawHeaders,
+        resolvedMapping.preset,
+        resolvedMapping.options,
+      );
     } else {
       result = applyColumnMapping(rawData, resolvedMapping.mapping);
     }
 
     const canMap =
-      result.headers.includes("source") && result.headers.includes("destination");
+      result.headers.includes("source") &&
+      result.headers.includes("destination");
 
     // Strip scheme+host from source when includeOrigin is off
-    const processed = !includeOrigin && canMap
-      ? result.data.map((row) => {
-          const src = row["source"] ?? "";
-          try {
-            const u = new URL(src);
-            return { ...row, source: u.pathname + u.search + u.hash };
-          } catch {
-            return row;
-          }
-        })
-      : result.data;
+    const processed =
+      !includeOrigin && canMap
+        ? result.data.map((row) => {
+            const src = row["source"] ?? "";
+            try {
+              const u = new URL(src);
+              return { ...row, source: u.pathname + u.search + u.hash };
+            } catch {
+              return row;
+            }
+          })
+        : result.data;
 
     let counter = 0;
-    const keyed = processed.map((row): Record<string, string> => ({
-      ...row,
-      _rowKey: String(counter++),
-    }));
+    const keyed = processed.map(
+      (row): Record<string, string> => ({
+        ...row,
+        _rowKey: String(counter++),
+      }),
+    );
     return { data: keyed, headers: result.headers };
   }, [rawData, rawHeaders, resolvedMapping, includeOrigin]);
 
-  const canAnalyze = headers.includes("source") && headers.includes("destination");
+  const canAnalyze =
+    headers.includes("source") && headers.includes("destination");
 
   const data = useMemo(() => {
     let result = mappedData;
@@ -175,7 +189,9 @@ export function useRedirectAnalysis(
       }
     }
     if (manuallyDeletedKeys.size > 0) {
-      result = result.filter((row: Record<string, string>) => !manuallyDeletedKeys.has(row._rowKey));
+      result = result.filter(
+        (row: Record<string, string>) => !manuallyDeletedKeys.has(row._rowKey),
+      );
     }
     return result;
   }, [mappedData, appliedActions, canAnalyze, manuallyDeletedKeys]);
@@ -186,7 +202,8 @@ export function useRedirectAnalysis(
   }, [data, canAnalyze]);
 
   const stats = useMemo(() => {
-    if (!canAnalyze || data.length === 0 || issuesByRow.length === 0) return null;
+    if (!canAnalyze || data.length === 0 || issuesByRow.length === 0)
+      return null;
     const totalPaths = data.length;
     const pathsWithIssues = issuesByRow.filter((i) => i.length > 0).length;
     const issueCounts = new Map<RedirectIssue, number>();
@@ -261,13 +278,21 @@ export function useRedirectAnalysis(
 // useIssueFilterOptions
 // ---------------------------------------------------------------------------
 
-export function useIssueFilterOptions(stats: ReturnType<typeof useRedirectAnalysis>["stats"]) {
+export function useIssueFilterOptions(
+  stats: ReturnType<typeof useRedirectAnalysis>["stats"],
+) {
   return useMemo(() => {
     if (!stats?.issueCounts) return undefined;
     return [
       { label: "All rows", value: "__all__" },
-      { label: `Has issues (${stats.pathsWithIssues.toLocaleString()})`, value: "__any__" },
-      { label: `No issues (${(stats.totalPaths - stats.pathsWithIssues).toLocaleString()})`, value: "__none__" },
+      {
+        label: `Has issues (${stats.pathsWithIssues.toLocaleString()})`,
+        value: "__any__",
+      },
+      {
+        label: `No issues (${(stats.totalPaths - stats.pathsWithIssues).toLocaleString()})`,
+        value: "__none__",
+      },
       ...[...stats.issueCounts.entries()]
         .sort(([, a], [, b]) => b - a)
         .map(([issue, count]) => ({
@@ -319,7 +344,9 @@ export function useTableColumns(headers: string[], canAnalyze: boolean) {
 // useActiveMapping — display info about the active mapping
 // ---------------------------------------------------------------------------
 
-export function useActiveMappingLabel(resolvedMapping: ResolvedMapping | null): string | null {
+export function useActiveMappingLabel(
+  resolvedMapping: ResolvedMapping | null,
+): string | null {
   return useMemo(() => {
     if (!resolvedMapping) return null;
     if (resolvedMapping.kind === "preset") return resolvedMapping.preset.name;
@@ -334,17 +361,22 @@ export function useActiveMappingLabel(resolvedMapping: ResolvedMapping | null): 
 
 export function usePresetMismatch(
   activePreset: CsvPreset | null,
-  rawHeaders: string[]
+  rawHeaders: string[],
 ): boolean {
   return useMemo(() => {
     if (!activePreset || rawHeaders.length === 0) return false;
     if (activePreset.transform) {
       const expected = activePreset.expectedColumns ?? [];
-      return expected.length > 0 && !expected.every((c) => rawHeaders.includes(c));
+      return (
+        expected.length > 0 && !expected.every((c) => rawHeaders.includes(c))
+      );
     }
     const { columns } = activePreset;
     if (!columns) return false;
-    return !rawHeaders.includes(columns.source) || !rawHeaders.includes(columns.destination);
+    return (
+      !rawHeaders.includes(columns.source) ||
+      !rawHeaders.includes(columns.destination)
+    );
   }, [activePreset, rawHeaders]);
 }
 

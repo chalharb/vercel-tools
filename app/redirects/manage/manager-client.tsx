@@ -15,7 +15,15 @@ import { VersionCompare } from "./_components/version-compare";
 import { ProjectSelector } from "./_components/project-selector";
 import { toast } from "sonner";
 import type { VercelProject } from "@/lib/redirects-api";
-import { Plus, History, Search, Trash2, Upload, FileUp, RotateCcw } from "lucide-react";
+import {
+  Plus,
+  History,
+  Search,
+  Trash2,
+  Upload,
+  FileUp,
+  RotateCcw,
+} from "lucide-react";
 
 interface Redirect {
   source: string;
@@ -79,7 +87,7 @@ export function RedirectsManager({
 
   // Selection state
   const [selectedSources, setSelectedSources] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
 
   // Dialog state
@@ -97,36 +105,31 @@ export function RedirectsManager({
   // Version compare
   const [compareOpen, setCompareOpen] = useState(false);
   const [compareVersion, setCompareVersion] = useState<RedirectVersion | null>(
-    null
+    null,
   );
 
   // We need both production and staging versions to know if staging exists
   const [productionVersion, setProductionVersion] =
     useState<RedirectVersion | null>(null);
   const [stagingVersion, setStagingVersion] = useState<RedirectVersion | null>(
-    null
+    null,
   );
 
   const perPage = 20;
 
   // Fetch versions to determine staging/production state
-  const fetchVersions = useCallback(
-    async (pid: string) => {
-      try {
-        const res = await fetch(
-          `/api/redirects/versions?projectId=${pid}`
-        );
-        if (!res.ok) return;
-        const data = await res.json();
-        const versions: RedirectVersion[] = data.versions ?? [];
-        setProductionVersion(versions.find((v) => v.isLive) ?? null);
-        setStagingVersion(versions.find((v) => v.isStaging) ?? null);
-      } catch {
-        // ignore
-      }
-    },
-    []
-  );
+  const fetchVersions = useCallback(async (pid: string) => {
+    try {
+      const res = await fetch(`/api/redirects/versions?projectId=${pid}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const versions: RedirectVersion[] = data.versions ?? [];
+      setProductionVersion(versions.find((v) => v.isLive) ?? null);
+      setStagingVersion(versions.find((v) => v.isStaging) ?? null);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   // Fetch redirects
   const fetchRedirects = useCallback(
@@ -138,7 +141,7 @@ export function RedirectsManager({
         q?: string;
         sb?: string;
         so?: string;
-      }
+      },
     ) => {
       setLoading(true);
       const tab = opts?.tab ?? activeTab;
@@ -150,7 +153,7 @@ export function RedirectsManager({
       try {
         // 1. Fetch version history to find staging vs production version IDs
         const versionsRes = await fetch(
-          `/api/redirects/versions?projectId=${pid}`
+          `/api/redirects/versions?projectId=${pid}`,
         );
         let prodVer: RedirectVersion | null = null;
         let stagingVer: RedirectVersion | null = null;
@@ -230,14 +233,14 @@ export function RedirectsManager({
         setSelectedSources(new Set());
       } catch (err) {
         toast.error(
-          err instanceof Error ? err.message : "Failed to load redirects"
+          err instanceof Error ? err.message : "Failed to load redirects",
         );
         setRedirects([]);
       } finally {
         setLoading(false);
       }
     },
-    [activeTab, page, search, sortBy, sortOrder]
+    [activeTab, page, search, sortBy, sortOrder],
   );
 
   // When project or tab changes
@@ -261,8 +264,7 @@ export function RedirectsManager({
   }
 
   function handleSort(field: string) {
-    const newOrder =
-      sortBy === field && sortOrder === "asc" ? "desc" : "asc";
+    const newOrder = sortBy === field && sortOrder === "asc" ? "desc" : "asc";
     setSortBy(field);
     setSortOrder(newOrder);
     if (projectId) {
@@ -316,7 +318,7 @@ export function RedirectsManager({
       fetchRedirects(projectId, { tab: "staging", pg: 1 });
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to save redirect"
+        err instanceof Error ? err.message : "Failed to save redirect",
       );
     } finally {
       setSaving(false);
@@ -337,21 +339,22 @@ export function RedirectsManager({
         const err = await res.json();
         throw new Error(err.error ?? "Failed to delete");
       }
-      toast.success(
-        `${sources.length} redirect(s) deleted (staged)`
-      );
+      toast.success(`${sources.length} redirect(s) deleted (staged)`);
       setSelectedSources(new Set());
       setActiveTab("staging");
       fetchRedirects(projectId, { tab: "staging", pg: 1 });
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to delete redirects"
+        err instanceof Error ? err.message : "Failed to delete redirects",
       );
     }
   }
 
   // Bulk upload redirects from CSV to staging
-  async function handleBulkUpload(redirectsToUpload: Redirect[], overwrite: boolean) {
+  async function handleBulkUpload(
+    redirectsToUpload: Redirect[],
+    overwrite: boolean,
+  ) {
     if (!projectId || redirectsToUpload.length === 0) return;
 
     setUploadingCsv(true);
@@ -372,7 +375,7 @@ export function RedirectsManager({
       }
 
       toast.success(
-        `${redirectsToUpload.length} redirect${redirectsToUpload.length !== 1 ? "s" : ""} uploaded to staging`
+        `${redirectsToUpload.length} redirect${redirectsToUpload.length !== 1 ? "s" : ""} uploaded to staging`,
       );
       setCsvDialogOpen(false);
       setActiveTab("staging");
@@ -380,7 +383,7 @@ export function RedirectsManager({
       fetchVersions(projectId);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to upload CSV redirects"
+        err instanceof Error ? err.message : "Failed to upload CSV redirects",
       );
     } finally {
       setUploadingCsv(false);
@@ -390,7 +393,7 @@ export function RedirectsManager({
   // Version actions (promote, discard, restore)
   async function handleVersionAction(
     versionId: string,
-    action: "promote" | "restore" | "discard"
+    action: "promote" | "restore" | "discard",
   ) {
     if (!projectId) return;
 
@@ -417,12 +420,15 @@ export function RedirectsManager({
         setActiveTab("production");
       }
       fetchRedirects(projectId, {
-        tab: action === "promote" || action === "discard" ? "production" : activeTab,
+        tab:
+          action === "promote" || action === "discard"
+            ? "production"
+            : activeTab,
         pg: 1,
       });
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : `Failed to ${action} version`
+        err instanceof Error ? err.message : `Failed to ${action} version`,
       );
     }
   }
@@ -438,7 +444,7 @@ export function RedirectsManager({
     if (!stagingVersion) return;
 
     const confirmed = window.confirm(
-      "Discard all staged changes? This cannot be undone."
+      "Discard all staged changes? This cannot be undone.",
     );
     if (!confirmed) return;
 
@@ -464,203 +470,188 @@ export function RedirectsManager({
       </div>
 
       {/* Toolbar */}
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Tabs
-                value={activeTab}
-                onValueChange={(v) => setActiveTab(v as TabValue)}
-              >
-                <TabsList>
-                  <TabsTrigger value="production">Production</TabsTrigger>
-                  <TabsTrigger value="staging" className="relative">
-                    Staging
-                    {stagingVersion && (
-                      <span className="ml-1.5 h-2 w-2 rounded-full bg-yellow-500 inline-block" />
-                    )}
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => setActiveTab(v as TabValue)}
+          >
+            <TabsList>
+              <TabsTrigger value="production">Production</TabsTrigger>
+              <TabsTrigger value="staging" className="relative">
+                Staging
+                {stagingVersion && (
+                  <span className="ml-1.5 h-2 w-2 rounded-full bg-yellow-500 inline-block" />
+                )}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search redirects..."
-                  className="pl-9 w-75"
-                  value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
-                />
-              </div>
-
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setHistoryOpen(true)}
-                title="Version history"
-              >
-                <History className="h-4 w-4" />
-              </Button>
-
-            </div>
-
-            <div className="flex items-center gap-2">
-              {selectedSources.size > 0 && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDelete(Array.from(selectedSources))}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete ({selectedSources.size})
-                </Button>
-              )}
-
-              {stagingVersion && activeTab === "staging" && (
-                <>
-                  <Button
-                  size="default"
-                    onClick={handleDiscardStaging}
-                  >
-                    <RotateCcw className="mr-2 h-4 w-4" />
-                    Discard Changes
-                  </Button>
-                  <Button onClick={handlePublish}>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Publish to Production
-                  </Button>
-                </>
-              )}
-
-              <Button
-                onClick={() => {
-                  setEditingRedirect(null);
-                  setDialogOpen(true);
-                }}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Create Redirect
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={() => setCsvDialogOpen(true)}
-              >
-                <FileUp className="mr-2 h-4 w-4" />
-                Bulk Upload CSV
-              </Button>
-            </div>
-          </div>
-
-          {/* Usage info */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>
-              Redirects usage: {redirectCount.toLocaleString()} of 10,000
-            </span>
-            {version && (
-              <Badge variant="outline" className="text-xs">
-                {version.isStaging
-                  ? "Staged"
-                  : version.isLive
-                    ? "Live"
-                    : "Version"}
-              </Badge>
-            )}
-          </div>
-
-          {/* Table */}
-          {loading ? (
-            <RedirectsTableSkeleton />
-          ) : activeTab === "staging" && !stagingVersion ? (
-            <div className="py-12 text-center text-muted-foreground">
-              <p className="text-lg font-medium">No staged changes</p>
-              <p className="mt-1 text-sm">
-                Create or edit a redirect to stage changes. Staged changes can be
-                reviewed and then published to production.
-              </p>
-            </div>
-          ) : (
-            <RedirectsTable
-              redirects={redirects}
-              selectedSources={selectedSources}
-              onSelectionChange={setSelectedSources}
-              onEdit={(r) => {
-                setEditingRedirect(r);
-                setDialogOpen(true);
-              }}
-              onDelete={handleDelete}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onSort={handleSort}
-              showActions={activeTab === "staging"}
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search redirects..."
+              className="pl-9 w-75"
+              value={search}
+              onChange={(e) => handleSearch(e.target.value)}
             />
+          </div>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setHistoryOpen(true)}
+            title="Version history"
+          >
+            <History className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {selectedSources.size > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => handleDelete(Array.from(selectedSources))}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete ({selectedSources.size})
+            </Button>
           )}
 
-          {/* Pagination */}
-          {pagination && pagination.numPages > 1 && (
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                Show {perPage}
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  {page} of {pagination.numPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page <= 1}
-                  onClick={() => handlePageChange(page - 1)}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page >= pagination.numPages}
-                  onClick={() => handlePageChange(page + 1)}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
+          {stagingVersion && activeTab === "staging" && (
+            <>
+              <Button size="default" onClick={handleDiscardStaging}>
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Discard Changes
+              </Button>
+              <Button onClick={handlePublish}>
+                <Upload className="mr-2 h-4 w-4" />
+                Publish to Production
+              </Button>
+            </>
           )}
 
-          {/* Dialogs */}
-          <RedirectDialog
-            open={dialogOpen}
-            onOpenChange={(open) => {
-              setDialogOpen(open);
-              if (!open) setEditingRedirect(null);
+          <Button
+            onClick={() => {
+              setEditingRedirect(null);
+              setDialogOpen(true);
             }}
-            onSave={handleSaveRedirect}
-            redirect={editingRedirect}
-            loading={saving}
-          />
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Create Redirect
+          </Button>
 
-          <CsvUploadDialog
-            open={csvDialogOpen}
-            onOpenChange={setCsvDialogOpen}
-            onUpload={handleBulkUpload}
-            loading={uploadingCsv}
-          />
+          <Button variant="outline" onClick={() => setCsvDialogOpen(true)}>
+            <FileUp className="mr-2 h-4 w-4" />
+            Bulk Upload CSV
+          </Button>
+        </div>
+      </div>
 
-          <VersionHistory
-            open={historyOpen}
-            onOpenChange={setHistoryOpen}
-            projectId={projectId}
-            onVersionAction={handleVersionAction}
-            onCompare={(version) => {
-              setCompareVersion(version);
-              setCompareOpen(true);
-            }}
-          />
+      {/* Usage info */}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span>Redirects usage: {redirectCount.toLocaleString()} of 10,000</span>
+        {version && (
+          <Badge variant="outline" className="text-xs">
+            {version.isStaging ? "Staged" : version.isLive ? "Live" : "Version"}
+          </Badge>
+        )}
+      </div>
 
-          <VersionCompare
-            open={compareOpen}
-            onOpenChange={setCompareOpen}
-            projectId={projectId}
-            compareVersion={compareVersion}
-            productionVersion={productionVersion}
-          />
+      {/* Table */}
+      {loading ? (
+        <RedirectsTableSkeleton />
+      ) : activeTab === "staging" && !stagingVersion ? (
+        <div className="py-12 text-center text-muted-foreground">
+          <p className="text-lg font-medium">No staged changes</p>
+          <p className="mt-1 text-sm">
+            Create or edit a redirect to stage changes. Staged changes can be
+            reviewed and then published to production.
+          </p>
+        </div>
+      ) : (
+        <RedirectsTable
+          redirects={redirects}
+          selectedSources={selectedSources}
+          onSelectionChange={setSelectedSources}
+          onEdit={(r) => {
+            setEditingRedirect(r);
+            setDialogOpen(true);
+          }}
+          onDelete={handleDelete}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={handleSort}
+          showActions={activeTab === "staging"}
+        />
+      )}
+
+      {/* Pagination */}
+      {pagination && pagination.numPages > 1 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">Show {perPage}</div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              {page} of {pagination.numPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => handlePageChange(page - 1)}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= pagination.numPages}
+              onClick={() => handlePageChange(page + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Dialogs */}
+      <RedirectDialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setEditingRedirect(null);
+        }}
+        onSave={handleSaveRedirect}
+        redirect={editingRedirect}
+        loading={saving}
+      />
+
+      <CsvUploadDialog
+        open={csvDialogOpen}
+        onOpenChange={setCsvDialogOpen}
+        onUpload={handleBulkUpload}
+        loading={uploadingCsv}
+      />
+
+      <VersionHistory
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        projectId={projectId}
+        onVersionAction={handleVersionAction}
+        onCompare={(version) => {
+          setCompareVersion(version);
+          setCompareOpen(true);
+        }}
+      />
+
+      <VersionCompare
+        open={compareOpen}
+        onOpenChange={setCompareOpen}
+        projectId={projectId}
+        compareVersion={compareVersion}
+        productionVersion={productionVersion}
+      />
     </div>
   );
 }

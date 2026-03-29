@@ -19,7 +19,10 @@ import { CSV_PRESETS } from "./csv-presets";
 import { CsvDropzone } from "./csv-dropzone";
 import { SummaryCard } from "./summary-card";
 import { BulkActionsMenu } from "./bulk-actions-menu";
-import { ColumnMappingDialog, type ResolvedMapping } from "./column-mapping-dialog";
+import {
+  ColumnMappingDialog,
+  type ResolvedMapping,
+} from "./column-mapping-dialog";
 import { ImportDialog } from "./import-dialog";
 import type { CsvExample } from "./examples";
 import {
@@ -33,20 +36,34 @@ import { useSavedMappings } from "./use-column-mapping";
 
 export function MigrateClient() {
   // Resolved mapping (set after the dialog is confirmed)
-  const [resolvedMapping, setResolvedMapping] = useState<ResolvedMapping | null>(null);
+  const [resolvedMapping, setResolvedMapping] =
+    useState<ResolvedMapping | null>(null);
 
   // Controls whether the Column Mapping dialog is open
   const [mappingDialogOpen, setMappingDialogOpen] = useState(false);
   // Hint passed to the dialog (e.g. from example loader) for pre-selection
-  const [mappingDialogHint, setMappingDialogHint] = useState<ResolvedMapping | undefined>(undefined);
+  const [mappingDialogHint, setMappingDialogHint] = useState<
+    ResolvedMapping | undefined
+  >(undefined);
 
   // Pending file/text kept while dialog is open
-  const pendingFileRef = useRef<{ text: string; name: string; preset?: ResolvedMapping } | null>(null);
+  const pendingFileRef = useRef<{
+    text: string;
+    name: string;
+    preset?: ResolvedMapping;
+  } | null>(null);
   // Original raw text stored so the dialog can be re-opened to change the mapping
-  const [originalText, setOriginalText] = useState<{ text: string; name: string } | null>(null);
+  const [originalText, setOriginalText] = useState<{
+    text: string;
+    name: string;
+  } | null>(null);
 
   const csv = useCsvParser();
-  const analysis = useRedirectAnalysis(csv.rawData, csv.rawHeaders, resolvedMapping);
+  const analysis = useRedirectAnalysis(
+    csv.rawData,
+    csv.rawHeaders,
+    resolvedMapping,
+  );
   const { savedMappings, saveMapping } = useSavedMappings();
 
   const issueFilterOptions = useIssueFilterOptions(analysis.stats);
@@ -66,7 +83,11 @@ export function MigrateClient() {
   // ------------------------------------------------------------------
   // After a file/text is loaded into rawData/rawHeaders, open the dialog
   // ------------------------------------------------------------------
-  function openMappingDialog(text: string, name: string, presetHint?: ResolvedMapping) {
+  function openMappingDialog(
+    text: string,
+    name: string,
+    presetHint?: ResolvedMapping,
+  ) {
     pendingFileRef.current = { text, name, preset: presetHint };
     setMappingDialogHint(presetHint);
     setMappingDialogOpen(true);
@@ -76,13 +97,21 @@ export function MigrateClient() {
   // Dialog: user confirmed a mapping
   // ------------------------------------------------------------------
   const handleMappingConfirm = useCallback(
-    (resolved: ResolvedMapping, save: { shouldSave: boolean; name: string }, options: { includeOrigin: boolean }) => {
+    (
+      resolved: ResolvedMapping,
+      save: { shouldSave: boolean; name: string },
+      options: { includeOrigin: boolean },
+    ) => {
       setResolvedMapping(resolved);
       setMappingDialogOpen(false);
       analysis.setIncludeOrigin(options.includeOrigin);
 
       // If it's a preset with preprocess, re-parse with preprocessing applied
-      if (resolved.kind === "preset" && resolved.preset.preprocess && pendingFileRef.current) {
+      if (
+        resolved.kind === "preset" &&
+        resolved.preset.preprocess &&
+        pendingFileRef.current
+      ) {
         const { text, name } = pendingFileRef.current;
         csv.loadText(text, name, resolved.preset);
       }
@@ -93,7 +122,7 @@ export function MigrateClient() {
 
       pendingFileRef.current = null;
     },
-    [csv, saveMapping, analysis]
+    [csv, saveMapping, analysis],
   );
 
   // ------------------------------------------------------------------
@@ -133,7 +162,7 @@ export function MigrateClient() {
       reader.onerror = () => csv.handleFile(file); // fallback, triggers error state
       reader.readAsText(file);
     },
-    [csv]
+    [csv],
   );
 
   // ------------------------------------------------------------------
@@ -141,13 +170,16 @@ export function MigrateClient() {
   // ------------------------------------------------------------------
   const handleLoadExample = useCallback(
     (example: CsvExample) => {
-      const text = example.toCsv ? example.toCsv(example.content) : example.content;
+      const text = example.toCsv
+        ? example.toCsv(example.content)
+        : example.content;
 
       let presetHint: ResolvedMapping | undefined;
       if (example.mappingHint) {
         presetHint = example.mappingHint;
       } else if (example.presetId) {
-        const preset = CSV_PRESETS.find((p) => p.id === example.presetId) ?? null;
+        const preset =
+          CSV_PRESETS.find((p) => p.id === example.presetId) ?? null;
         if (preset) presetHint = { kind: "preset", preset };
       }
 
@@ -158,7 +190,7 @@ export function MigrateClient() {
       setOriginalText({ text, name: example.fileName });
       openMappingDialog(text, example.fileName, presetHint);
     },
-    [csv]
+    [csv],
   );
 
   // ------------------------------------------------------------------
@@ -172,7 +204,9 @@ export function MigrateClient() {
     return analysis.data.map((row) => ({
       source: row["source"] ?? "",
       destination: row["destination"] ?? "",
-      statusCode: row["statusCode"] ? parseInt(row["statusCode"], 10) || 308 : 308,
+      statusCode: row["statusCode"]
+        ? parseInt(row["statusCode"], 10) || 308
+        : 308,
     }));
   }, [analysis.data, analysis.canAnalyze]);
 
@@ -186,7 +220,9 @@ export function MigrateClient() {
   return (
     <div className="flex flex-col gap-6">
       <div className="mb-10">
-        <h1 className="text-3xl font-bold tracking-tight">Redirect Migration Tool</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Redirect Migration Tool
+        </h1>
         <p className="mt-2 text-muted-foreground">
           Upload a CSV to bulk import redirects into Vercel.
         </p>
@@ -199,9 +235,12 @@ export function MigrateClient() {
           <div className="flex items-center justify-between">
             <div className="flex flex-col gap-1">
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">{csv.fileName}</span>
+                <span className="font-medium text-foreground">
+                  {csv.fileName}
+                </span>
                 {" — "}
-                {analysis.data.length} row{analysis.data.length !== 1 && "s"} parsed
+                {analysis.data.length} row{analysis.data.length !== 1 && "s"}{" "}
+                parsed
               </p>
               {mappingLabel && (
                 <p className="text-xs text-muted-foreground">
@@ -247,7 +286,9 @@ export function MigrateClient() {
                         <div className="flex flex-col gap-2">
                           <p>Unresolved issues may cause unexpected behavior</p>
                           <div className="mt-4">
-                            <span className="font-bold">Identified Issues:</span>
+                            <span className="font-bold">
+                              Identified Issues:
+                            </span>
                             <ul className="ml-6 list-disc [&>li]:mt-2">
                               {analysis.stats.pathsWithIssues > 0 && (
                                 <li>
@@ -305,7 +346,13 @@ export function MigrateClient() {
             data={analysis.enrichedData}
             facetFilters={
               issueFilterOptions
-                ? [{ columnId: "issues", label: "Issue type", options: issueFilterOptions }]
+                ? [
+                    {
+                      columnId: "issues",
+                      label: "Issue type",
+                      options: issueFilterOptions,
+                    },
+                  ]
                 : undefined
             }
             onDeleteRows={analysis.handleDeleteRows}

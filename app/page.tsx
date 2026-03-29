@@ -9,7 +9,8 @@ const tools = [
     items: [
       {
         title: "Redirect Manager",
-        description: "View, search, and manage all redirects configured on your Vercel project.",
+        description:
+          "View, search, and manage all redirects configured on your Vercel project.",
         href: "/redirects/manage",
         icon: LayoutListIcon,
         status: "available" as const,
@@ -21,7 +22,7 @@ const tools = [
         href: "/redirects/migrate",
         icon: GitMergeIcon,
         status: "available" as const,
-      }
+      },
     ],
   },
 ];
@@ -59,10 +60,15 @@ export default function Home() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <Icon className="size-4 text-muted-foreground" />
-                          <CardTitle className="text-base">{tool.title}</CardTitle>
+                          <CardTitle className="text-base">
+                            {tool.title}
+                          </CardTitle>
                         </div>
                         {!isAvailable && (
-                          <Badge variant="secondary" className="shrink-0 text-xs">
+                          <Badge
+                            variant="secondary"
+                            className="shrink-0 text-xs"
+                          >
                             Coming soon
                           </Badge>
                         )}
@@ -72,7 +78,9 @@ export default function Home() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-muted-foreground">{tool.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {tool.description}
+                      </p>
                     </CardContent>
                   </Card>
                 );

@@ -55,7 +55,9 @@ export function ImportDialog({
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [overwrite, setOverwrite] = useState(false);
-  const [importState, setImportState] = useState<ImportState>({ step: "select" });
+  const [importState, setImportState] = useState<ImportState>({
+    step: "select",
+  });
 
   // Fetch projects when dialog opens
   useEffect(() => {
@@ -99,7 +101,7 @@ export function ImportDialog({
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(
-          err.error ?? `Failed to stage redirects (${res.status})`
+          err.error ?? `Failed to stage redirects (${res.status})`,
         );
       }
 
@@ -140,9 +142,7 @@ export function ImportDialog({
                 Close
               </Button>
               <Button asChild>
-                <Link
-                  href={`/redirects/manage/${importState.projectId}`}
-                >
+                <Link href={`/redirects/manage/${importState.projectId}`}>
                   Review in Manager
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </Link>

@@ -9,7 +9,10 @@ import type { ResolvedMapping } from "./column-mapping-types";
 export const EMPTY_SPEC: ColumnFieldSpec = { columns: [], separators: [] };
 
 /** Build a spec with a new column appended and a blank separator slot inserted before it. */
-export function appendColumn(spec: ColumnFieldSpec, col: string): ColumnFieldSpec {
+export function appendColumn(
+  spec: ColumnFieldSpec,
+  col: string,
+): ColumnFieldSpec {
   return {
     columns: [...spec.columns, col],
     separators: [...(spec.separators ?? []), ""],
@@ -17,22 +20,32 @@ export function appendColumn(spec: ColumnFieldSpec, col: string): ColumnFieldSpe
 }
 
 /** Remove column at index and the separator that precedes it (or follows, for index 0). */
-export function removeColumn(spec: ColumnFieldSpec, idx: number): ColumnFieldSpec {
+export function removeColumn(
+  spec: ColumnFieldSpec,
+  idx: number,
+): ColumnFieldSpec {
   const cols = spec.columns.filter((_, i) => i !== idx);
   const seps = [...(spec.separators ?? [])];
-  if (idx === 0) seps.splice(0, 1);      // remove separator after first col
-  else seps.splice(idx - 1, 1);          // remove separator before this col
+  if (idx === 0)
+    seps.splice(0, 1); // remove separator after first col
+  else seps.splice(idx - 1, 1); // remove separator before this col
   return { columns: cols, separators: seps };
 }
 
 /** Update the separator at position i (between columns[i] and columns[i+1]). */
-export function updateSeparator(spec: ColumnFieldSpec, i: number, value: string): ColumnFieldSpec {
+export function updateSeparator(
+  spec: ColumnFieldSpec,
+  i: number,
+  value: string,
+): ColumnFieldSpec {
   const seps = [...(spec.separators ?? [])];
   seps[i] = value;
   return { ...spec, separators: seps };
 }
 
-function stripOriginFromRows(rows: Record<string, string>[]): Record<string, string>[] {
+function stripOriginFromRows(
+  rows: Record<string, string>[],
+): Record<string, string>[] {
   return rows.map((row) => {
     const src = row["source"] ?? "";
     try {
@@ -67,7 +80,12 @@ export function buildPreviewRows(
       });
       data = parsed.data;
     } else {
-      data = applyPreset(rawRows, rawHeaders, resolved.preset, resolved.options).data;
+      data = applyPreset(
+        rawRows,
+        rawHeaders,
+        resolved.preset,
+        resolved.options,
+      ).data;
     }
   } else {
     data = applyColumnMapping(rawRows, resolved.mapping).data;
@@ -87,7 +105,10 @@ export function isMappingComplete(resolved: ResolvedMapping | null): boolean {
   );
 }
 
-export function savedMappingLabel(mapping: { source: ColumnFieldSpec; destination: ColumnFieldSpec }): string {
+export function savedMappingLabel(mapping: {
+  source: ColumnFieldSpec;
+  destination: ColumnFieldSpec;
+}): string {
   const src = mapping.source.columns.join("+");
   const dst = mapping.destination.columns.join("+");
   return `${src} → ${dst}`;

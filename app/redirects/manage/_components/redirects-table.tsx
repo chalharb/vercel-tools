@@ -54,7 +54,8 @@ function ActionBadge({ action }: { action?: string }) {
   const config: Record<string, { label: string; className: string }> = {
     "+": {
       label: "Added",
-      className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+      className:
+        "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
     },
     "-": {
       label: "Deleted",
@@ -62,7 +63,8 @@ function ActionBadge({ action }: { action?: string }) {
     },
     "~": {
       label: "Modified",
-      className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+      className:
+        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
     },
   };
 
@@ -156,9 +158,30 @@ export function RedirectsTable({
           <TableHead className="w-[40px]">
             <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
           </TableHead>
-          <SortableHeader field="source" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort}>Source</SortableHeader>
-          <SortableHeader field="statusCode" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort}>Code</SortableHeader>
-          <SortableHeader field="destination" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort}>Destination</SortableHeader>
+          <SortableHeader
+            field="source"
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={onSort}
+          >
+            Source
+          </SortableHeader>
+          <SortableHeader
+            field="statusCode"
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={onSort}
+          >
+            Code
+          </SortableHeader>
+          <SortableHeader
+            field="destination"
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={onSort}
+          >
+            Destination
+          </SortableHeader>
           {showActions && <TableHead>Change</TableHead>}
           <TableHead className="w-[50px]" />
         </TableRow>

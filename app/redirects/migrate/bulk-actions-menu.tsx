@@ -40,20 +40,30 @@ export function BulkActionsMenu({
         <DropdownMenuLabel>Clean up redirects</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onSelect={() => onToggleAction("drop-trailing-slashes")}>
+          <DropdownMenuItem
+            onSelect={() => onToggleAction("drop-trailing-slashes")}
+          >
             <div className="flex flex-col">
               <span className="font-medium">
-                {appliedActions.has("drop-trailing-slashes") ? "Restore" : "Drop"} trailing slash rows
+                {appliedActions.has("drop-trailing-slashes")
+                  ? "Restore"
+                  : "Drop"}{" "}
+                trailing slash rows
               </span>
               <span className="text-xs text-muted-foreground">
                 Remove rows where source ends with /
               </span>
             </div>
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => onToggleAction("drop-redundant-duplicates")}>
+          <DropdownMenuItem
+            onSelect={() => onToggleAction("drop-redundant-duplicates")}
+          >
             <div className="flex flex-col">
               <span className="font-medium">
-                {appliedActions.has("drop-redundant-duplicates") ? "Restore" : "Drop"} redundant duplicates
+                {appliedActions.has("drop-redundant-duplicates")
+                  ? "Restore"
+                  : "Drop"}{" "}
+                redundant duplicates
               </span>
               <span className="text-xs text-muted-foreground">
                 Keep first occurrence of same source → destination

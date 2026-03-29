@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   if (!projectId) {
     return NextResponse.json(
       { error: "projectId is required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     if (!projectId || !versionId || !action) {
       return NextResponse.json(
         { error: "projectId, versionId, and action are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
     const data = await updateVersion(projectId, versionId, action, { name });

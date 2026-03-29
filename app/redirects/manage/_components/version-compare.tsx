@@ -77,7 +77,7 @@ function redirectsEqual(a: Redirect, b: Redirect): boolean {
 
 async function fetchAllRedirects(
   projectId: string,
-  versionId: string
+  versionId: string,
 ): Promise<Redirect[]> {
   const all: Redirect[] = [];
   let page = 1;
@@ -112,8 +112,7 @@ function DiffBadge({ type }: { type: DiffType }) {
     },
     removed: {
       label: "Removed",
-      className:
-        "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+      className: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
     },
     modified: {
       label: "Modified",
@@ -160,85 +159,80 @@ export function VersionCompare({
 
   const fetchIdRef = useRef(0);
 
-  const loadComparison = useCallback(async (
-    base: RedirectVersion,
-    head: RedirectVersion,
-    pid: string,
-  ) => {
-    const fetchId = ++fetchIdRef.current;
-    setLoading(true);
-    setSearch("");
-    setFilterType("all");
+  const loadComparison = useCallback(
+    async (base: RedirectVersion, head: RedirectVersion, pid: string) => {
+      const fetchId = ++fetchIdRef.current;
+      setLoading(true);
+      setSearch("");
+      setFilterType("all");
 
-    try {
-      const [baseRedirects, headRedirects] = await Promise.all([
-        fetchAllRedirects(pid, base.id),
-        fetchAllRedirects(pid, head.id),
-      ]);
+      try {
+        const [baseRedirects, headRedirects] = await Promise.all([
+          fetchAllRedirects(pid, base.id),
+          fetchAllRedirects(pid, head.id),
+        ]);
 
-      if (fetchId !== fetchIdRef.current) return; // stale
+        if (fetchId !== fetchIdRef.current) return; // stale
 
-      const baseMap = new Map<string, Redirect>();
-      for (const r of baseRedirects) {
-        baseMap.set(r.source, r);
-      }
-
-      const headMap = new Map<string, Redirect>();
-      for (const r of headRedirects) {
-        headMap.set(r.source, r);
-      }
-
-      const entries: DiffEntry[] = [];
-      const allSources = new Set([
-        ...baseMap.keys(),
-        ...headMap.keys(),
-      ]);
-
-      for (const source of allSources) {
-        const b = baseMap.get(source);
-        const h = headMap.get(source);
-
-        if (b && h) {
-          entries.push({
-            source,
-            type: redirectsEqual(b, h) ? "unchanged" : "modified",
-            base: b,
-            head: h,
-          });
-        } else if (b && !h) {
-          entries.push({
-            source,
-            type: "removed",
-            base: b,
-          });
-        } else if (!b && h) {
-          entries.push({
-            source,
-            type: "added",
-            head: h,
-          });
+        const baseMap = new Map<string, Redirect>();
+        for (const r of baseRedirects) {
+          baseMap.set(r.source, r);
         }
+
+        const headMap = new Map<string, Redirect>();
+        for (const r of headRedirects) {
+          headMap.set(r.source, r);
+        }
+
+        const entries: DiffEntry[] = [];
+        const allSources = new Set([...baseMap.keys(), ...headMap.keys()]);
+
+        for (const source of allSources) {
+          const b = baseMap.get(source);
+          const h = headMap.get(source);
+
+          if (b && h) {
+            entries.push({
+              source,
+              type: redirectsEqual(b, h) ? "unchanged" : "modified",
+              base: b,
+              head: h,
+            });
+          } else if (b && !h) {
+            entries.push({
+              source,
+              type: "removed",
+              base: b,
+            });
+          } else if (!b && h) {
+            entries.push({
+              source,
+              type: "added",
+              head: h,
+            });
+          }
+        }
+
+        const order: Record<DiffType, number> = {
+          added: 0,
+          removed: 1,
+          modified: 2,
+          unchanged: 3,
+        };
+        entries.sort(
+          (a, b) =>
+            order[a.type] - order[b.type] || a.source.localeCompare(b.source),
+        );
+
+        setDiff(entries);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
-
-      const order: Record<DiffType, number> = {
-        added: 0,
-        removed: 1,
-        modified: 2,
-        unchanged: 3,
-      };
-      entries.sort(
-        (a, b) =>
-          order[a.type] - order[b.type] ||
-          a.source.localeCompare(b.source)
-      );
-
-      setDiff(entries);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!open || !baseVersion || !headVersion) return;
@@ -251,9 +245,11 @@ export function VersionCompare({
       if (search) {
         const q = search.toLowerCase();
         const source = entry.source.toLowerCase();
-        const dest =
-          (entry.head?.destination ?? entry.base?.destination ?? "")
-            .toLowerCase();
+        const dest = (
+          entry.head?.destination ??
+          entry.base?.destination ??
+          ""
+        ).toLowerCase();
         if (!source.includes(q) && !dest.includes(q)) return false;
       }
       return true;
@@ -323,9 +319,7 @@ export function VersionCompare({
                 size="sm"
                 onClick={() => setFilterType("removed")}
                 className={
-                  counts.removed > 0
-                    ? "border-red-300 dark:border-red-700"
-                    : ""
+                  counts.removed > 0 ? "border-red-300 dark:border-red-700" : ""
                 }
               >
                 <span className="h-2 w-2 rounded-full bg-red-500 mr-1.5" />
@@ -445,9 +439,7 @@ function DiffRow({ entry }: { entry: DiffEntry }) {
             {headCode && (
               <Badge
                 variant={
-                  headCode === 301 || headCode === 308
-                    ? "default"
-                    : "secondary"
+                  headCode === 301 || headCode === 308 ? "default" : "secondary"
                 }
               >
                 {headCode}
@@ -485,9 +477,7 @@ function DiffRow({ entry }: { entry: DiffEntry }) {
       <TableCell>
         {code && (
           <Badge
-            variant={
-              code === 301 || code === 308 ? "default" : "secondary"
-            }
+            variant={code === 301 || code === 308 ? "default" : "secondary"}
           >
             {code}
           </Badge>

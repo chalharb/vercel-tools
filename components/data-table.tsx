@@ -14,7 +14,12 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDownIcon, ChevronLeftIcon, ChevronRightIcon, Trash2Icon } from "lucide-react";
+import {
+  ArrowUpDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  Trash2Icon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -181,11 +186,16 @@ export function DataTable<TData, TValue>({
         <div className="flex items-center gap-4">
           {facetFilters?.map((facet) => (
             <div key={facet.columnId} className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground whitespace-nowrap">{facet.label}</span>
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                {facet.label}
+              </span>
               <Select
                 value={facetValues[facet.columnId] ?? "__all__"}
                 onValueChange={(value) => {
-                  setFacetValues((prev) => ({ ...prev, [facet.columnId]: value }));
+                  setFacetValues((prev) => ({
+                    ...prev,
+                    [facet.columnId]: value,
+                  }));
                   const col = table.getColumn(facet.columnId);
                   if (col) {
                     col.setFilterValue(value === "__all__" ? undefined : value);
@@ -246,19 +256,19 @@ export function DataTable<TData, TValue>({
                       >
                         {flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                         <ArrowUpDownIcon
                           className={cn(
                             "size-3.5 text-muted-foreground/50",
-                            header.column.getIsSorted() && "text-foreground"
+                            header.column.getIsSorted() && "text-foreground",
                           )}
                         />
                       </button>
                     ) : (
                       flexRender(
                         header.column.columnDef.header,
-                        header.getContext()
+                        header.getContext(),
                       )
                     )}
                     {/* Resize handle */}
@@ -269,7 +279,8 @@ export function DataTable<TData, TValue>({
                         className={cn(
                           "absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none opacity-0 group-hover:opacity-100",
                           "bg-border",
-                          header.column.getIsResizing() && "opacity-100 bg-primary"
+                          header.column.getIsResizing() &&
+                            "opacity-100 bg-primary",
                         )}
                       />
                     )}
@@ -293,7 +304,7 @@ export function DataTable<TData, TValue>({
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -307,7 +318,9 @@ export function DataTable<TData, TValue>({
                 >
                   {columnFilters.length > 0 || globalFilter ? (
                     <div className="flex flex-col items-center gap-2">
-                      <p className="text-muted-foreground">No rows match the current filter.</p>
+                      <p className="text-muted-foreground">
+                        No rows match the current filter.
+                      </p>
                       <Button
                         variant="outline"
                         size="sm"
@@ -375,7 +388,7 @@ export function DataTable<TData, TValue>({
  * Useful for CSV data where columns aren't known at compile time.
  */
 export function buildColumnsFromHeaders(
-  headers: string[]
+  headers: string[],
 ): ColumnDef<Record<string, string>>[] {
   return headers.map((header) => ({
     // Use accessorFn + explicit id for headers containing dots so TanStack
@@ -385,7 +398,11 @@ export function buildColumnsFromHeaders(
     header: header,
     cell: ({ getValue }) => {
       const value = getValue() as string;
-      return <span className="truncate block" title={value}>{value}</span>;
+      return (
+        <span className="truncate block" title={value}>
+          {value}
+        </span>
+      );
     },
     size: 200,
     minSize: 80,

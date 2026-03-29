@@ -19,7 +19,8 @@ const tools = [
   },
   {
     title: "Redirect Manager",
-    description: "View, search, and manage all redirects configured on your Vercel project.",
+    description:
+      "View, search, and manage all redirects configured on your Vercel project.",
     href: "/redirects/manage",
     icon: LayoutListIcon,
     status: "available" as const,
@@ -66,7 +67,9 @@ export default function RedirectsPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">{tool.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  {tool.description}
+                </p>
               </CardContent>
             </Card>
           );

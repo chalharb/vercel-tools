@@ -12,7 +12,10 @@ export interface ColumnFieldSpec {
 }
 
 /** Resolve a ColumnFieldSpec against a raw row into a string value. */
-function resolveSpec(spec: ColumnFieldSpec, row: Record<string, string>): string {
+function resolveSpec(
+  spec: ColumnFieldSpec,
+  row: Record<string, string>,
+): string {
   return spec.columns.reduce((acc, col, i) => {
     const sep = i === 0 ? "" : (spec.separators?.[i - 1] ?? "");
     return acc + sep + (row[col] ?? "");
@@ -40,7 +43,7 @@ export interface ColumnMapping {
  */
 export function applyColumnMapping(
   rawData: Record<string, string>[],
-  mapping: ColumnMapping
+  mapping: ColumnMapping,
 ): { data: Record<string, string>[]; headers: string[] } {
   const mapped = rawData.map((row) => ({
     source: resolveSpec(mapping.source, row),
@@ -74,7 +77,7 @@ export interface CsvPreset {
    *  Receives optional user-configurable options as the second argument. */
   transform?: (
     row: Record<string, string>,
-    options?: PresetOptions
+    options?: PresetOptions,
   ) =>
     | { source: string; destination: string; statusCode: string }
     | { source: string; destination: string; statusCode: string }[]
@@ -102,7 +105,7 @@ export interface PresetOptionDef {
 }
 
 function htaccessTransformRows(
-  raw: string
+  raw: string,
 ): { source: string; destination: string; statusCode: string }[] {
   const rows: { source: string; destination: string; statusCode: string }[] =
     [];
@@ -112,7 +115,7 @@ function htaccessTransformRows(
 
     // RewriteRule ^old$ /new [R=301,L]
     const rewriteMatch = trimmed.match(
-      /^RewriteRule\s+\^(.+?)\$\s+(\S+)\s+\[R=(\d{3})/
+      /^RewriteRule\s+\^(.+?)\$\s+(\S+)\s+\[R=(\d{3})/,
     );
     if (rewriteMatch) {
       const [, source, destination, code] = rewriteMatch;
@@ -121,9 +124,7 @@ function htaccessTransformRows(
     }
 
     // Redirect 301 /old /new
-    const redirectMatch = trimmed.match(
-      /^Redirect\s+(\d{3})\s+(\S+)\s+(\S+)/
-    );
+    const redirectMatch = trimmed.match(/^Redirect\s+(\d{3})\s+(\S+)\s+(\S+)/);
     if (redirectMatch) {
       const [, code, source, destination] = redirectMatch;
       rows.push({ source, destination, statusCode: code });
@@ -153,9 +154,7 @@ export const CSV_PRESETS: CsvPreset[] = [
       const rows = htaccessTransformRows(raw);
       return [
         "source,destination,statusCode",
-        ...rows.map(
-          (r) => `${r.source},${r.destination},${r.statusCode}`
-        ),
+        ...rows.map((r) => `${r.source},${r.destination},${r.statusCode}`),
       ].join("\n");
     },
   },
@@ -203,13 +202,17 @@ export const CSV_PRESETS: CsvPreset[] = [
   },
 ];
 
-export const STANDARD_HEADERS = ["source", "destination", "statusCode"] as const;
+export const STANDARD_HEADERS = [
+  "source",
+  "destination",
+  "statusCode",
+] as const;
 
 export function applyPreset(
   rawData: Record<string, string>[],
   rawHeaders: string[],
   preset: CsvPreset,
-  options?: PresetOptions
+  options?: PresetOptions,
 ): { data: Record<string, string>[]; headers: string[] } {
   // Custom transform path (Akamai, etc.)
   if (preset.transform) {

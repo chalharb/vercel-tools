@@ -26,7 +26,11 @@ export interface ColumnMappingDialogProps {
   /** Called when the user cancels the dialog */
   onCancel: () => void;
   /** Called when the user confirms a mapping */
-  onConfirm: (resolved: ResolvedMapping, save: { shouldSave: boolean; name: string }, options: { includeOrigin: boolean }) => void;
+  onConfirm: (
+    resolved: ResolvedMapping,
+    save: { shouldSave: boolean; name: string },
+    options: { includeOrigin: boolean },
+  ) => void;
 }
 
 export const NO_COLUMN = "__none__";

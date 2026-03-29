@@ -45,7 +45,10 @@ interface CsvUploadDialogProps {
 
 const VALID_STATUS_CODES = [301, 302, 303, 307, 308];
 
-function parseCSV(text: string, includeOrigin = false): {
+function parseCSV(
+  text: string,
+  includeOrigin = false,
+): {
   redirects: ParsedRedirect[];
   errors: ParseError[];
 } {
@@ -109,7 +112,11 @@ function parseCSV(text: string, includeOrigin = false): {
       }
     }
 
-    if (includeOrigin && !source.startsWith("/") && !source.startsWith("http")) {
+    if (
+      includeOrigin &&
+      !source.startsWith("/") &&
+      !source.startsWith("http")
+    ) {
       errors.push({
         row: rowNum,
         message: `Source must start with / or http(s):// (got "${source}")`,
@@ -202,7 +209,8 @@ export function CsvUploadDialog({
 
   // Derive redirects + errors from rawText + includeOrigin (no effect needed)
   const { redirects, errors } = useMemo(() => {
-    if (rawText === null) return { redirects: [] as ParsedRedirect[], errors: [] as ParseError[] };
+    if (rawText === null)
+      return { redirects: [] as ParsedRedirect[], errors: [] as ParseError[] };
     return parseCSV(rawText, includeOrigin);
   }, [rawText, includeOrigin]);
 
