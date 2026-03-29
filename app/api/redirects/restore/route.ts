@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { restoreRedirects } from "@/lib/vercel";
+import { restoreRedirects } from "@/lib/redirects-api";
 
 export async function POST(request: NextRequest) {
   try {

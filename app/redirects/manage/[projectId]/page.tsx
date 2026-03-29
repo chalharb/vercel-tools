@@ -1,5 +1,5 @@
 import { RedirectsManager } from "../manager-client";
-import { listProjects } from "@/lib/vercel";
+import { listProjects } from "@/lib/redirects-api";
 import { notFound } from "next/navigation";
 import type { PageProps } from "next";
 

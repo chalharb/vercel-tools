@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import type { VercelProject } from "@/lib/vercel";
+import type { VercelProject } from "@/lib/redirects-api";
 
 interface ProjectSelectorProps {
   projects: VercelProject[];

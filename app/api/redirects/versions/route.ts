@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getVersionHistory, updateVersion } from "@/lib/vercel";
+import { getVersionHistory, updateVersion } from "@/lib/redirects-api";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;

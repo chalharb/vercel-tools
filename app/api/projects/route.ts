@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { listProjects } from "@/lib/vercel";
+import { listProjects } from "@/lib/redirects-api";
 
 export async function GET() {
   try {

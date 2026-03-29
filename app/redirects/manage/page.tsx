@@ -1,4 +1,4 @@
-import { listProjects } from "@/lib/vercel";
+import { listProjects } from "@/lib/redirects-api";
 import Link from "next/link";
 import { ArrowRightIcon, LayoutListIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

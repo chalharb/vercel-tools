@@ -4,7 +4,7 @@ import {
   stageRedirects,
   editRedirect,
   deleteRedirects,
-} from "@/lib/vercel";
+} from "@/lib/redirects-api";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;

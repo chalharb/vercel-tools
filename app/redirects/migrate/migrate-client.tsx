@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { AlertTriangleIcon, Upload } from "lucide-react";
 import {
   AlertDialog,
@@ -21,6 +20,7 @@ import { CsvDropzone } from "./csv-dropzone";
 import { SummaryCard } from "./summary-card";
 import { BulkActionsMenu } from "./bulk-actions-menu";
 import { ColumnMappingDialog, type ResolvedMapping } from "./column-mapping-dialog";
+import { ImportDialog } from "./import-dialog";
 import type { CsvExample } from "./examples";
 import {
   useCsvParser,
@@ -164,29 +164,21 @@ export function MigrateClient() {
   // ------------------------------------------------------------------
   // Import
   // ------------------------------------------------------------------
-  const importingRef = useRef(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+
+  // Convert analysis data (string statusCode) to the API redirect format
+  const importRedirects = useMemo(() => {
+    if (!analysis.canAnalyze) return [];
+    return analysis.data.map((row) => ({
+      source: row["source"] ?? "",
+      destination: row["destination"] ?? "",
+      statusCode: row["statusCode"] ? parseInt(row["statusCode"], 10) || 308 : 308,
+    }));
+  }, [analysis.data, analysis.canAnalyze]);
 
   const handleImport = useCallback(() => {
-    if (importingRef.current) return;
-    importingRef.current = true;
-
-    const rowCount = analysis.data.length;
-
-    toast.promise(
-      new Promise<{ count: number }>((resolve) => {
-        setTimeout(() => {
-          importingRef.current = false;
-          resolve({ count: rowCount });
-        }, 2000);
-      }),
-      {
-        loading: `Importing ${rowCount} redirect${rowCount !== 1 ? "s" : ""} to Vercel…`,
-        success: (data) =>
-          `Successfully imported ${data.count} redirect${data.count !== 1 ? "s" : ""} to Vercel.`,
-        error: "Failed to import redirects.",
-      }
-    );
-  }, [analysis.data.length]);
+    setImportDialogOpen(true);
+  }, []);
 
   // ------------------------------------------------------------------
   // Render
@@ -334,6 +326,13 @@ export function MigrateClient() {
         presetHint={mappingDialogHint}
         onCancel={handleMappingCancel}
         onConfirm={handleMappingConfirm}
+      />
+
+      {/* Import Dialog — project selection + stage */}
+      <ImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        redirects={importRedirects}
       />
     </div>
   );

@@ -14,7 +14,7 @@ import { VersionHistory } from "./_components/version-history";
 import { VersionCompare } from "./_components/version-compare";
 import { ProjectSelector } from "./_components/project-selector";
 import { toast } from "sonner";
-import type { VercelProject } from "@/lib/vercel";
+import type { VercelProject } from "@/lib/redirects-api";
 import { Plus, History, Search, Trash2, Upload, FileUp, RotateCcw } from "lucide-react";
 
 interface Redirect {
