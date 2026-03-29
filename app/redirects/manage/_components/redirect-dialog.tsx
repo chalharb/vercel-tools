@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -45,27 +45,26 @@ export function RedirectDialog({
   loading,
 }: RedirectDialogProps) {
   const isEditing = !!redirect;
-  const [source, setSource] = useState("");
-  const [destination, setDestination] = useState("");
-  const [statusCode, setStatusCode] = useState("301");
-  const [caseSensitive, setCaseSensitive] = useState(false);
-  const [preserveQueryParams, setPreserveQueryParams] = useState(false);
+  const [source, setSource] = useState(() => redirect?.source ?? "");
+  const [destination, setDestination] = useState(() => redirect?.destination ?? "");
+  const [statusCode, setStatusCode] = useState(() => String(redirect?.statusCode ?? 301));
+  const [caseSensitive, setCaseSensitive] = useState(() => redirect?.caseSensitive ?? false);
+  const [preserveQueryParams, setPreserveQueryParams] = useState(() => redirect?.preserveQueryParams ?? false);
 
-  useEffect(() => {
-    if (redirect) {
-      setSource(redirect.source);
-      setDestination(redirect.destination);
-      setStatusCode(String(redirect.statusCode ?? 301));
-      setCaseSensitive(redirect.caseSensitive ?? false);
-      setPreserveQueryParams(redirect.preserveQueryParams ?? false);
-    } else {
-      setSource("");
-      setDestination("");
-      setStatusCode("301");
-      setCaseSensitive(false);
-      setPreserveQueryParams(false);
-    }
-  }, [redirect, open]);
+  // Reset form state when the dialog opens with different data.
+  // Using the React "key resets state" pattern instead: the parent should
+  // provide a key (e.g. redirect?.source ?? "new") to force a fresh mount.
+  // As a fallback we detect prop changes via a ref and sync:
+  const prevIdentity = redirect?.source ?? (open ? "__new__" : "__closed__");
+  const [lastIdentity, setLastIdentity] = useState(prevIdentity);
+  if (prevIdentity !== lastIdentity) {
+    setLastIdentity(prevIdentity);
+    setSource(redirect?.source ?? "");
+    setDestination(redirect?.destination ?? "");
+    setStatusCode(String(redirect?.statusCode ?? 301));
+    setCaseSensitive(redirect?.caseSensitive ?? false);
+    setPreserveQueryParams(redirect?.preserveQueryParams ?? false);
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

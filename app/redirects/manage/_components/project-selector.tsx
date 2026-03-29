@@ -12,14 +12,12 @@ import type { VercelProject } from "@/lib/redirects-api";
 
 interface ProjectSelectorProps {
   projects: VercelProject[];
-  selectedProjectId: string;
   selectedProjectName: string;
-  onProjectSelect: (projectId: string, projectName: string) => void;
+  onProjectSelect: (projectId: string) => void;
 }
 
 export function ProjectSelector({
   projects,
-  selectedProjectId,
   selectedProjectName,
   onProjectSelect,
 }: ProjectSelectorProps) {
@@ -31,7 +29,7 @@ export function ProjectSelector({
         onValueChange={(value) => {
           if (!value) return;
           const project = projects.find((p) => p.name === value);
-          if (project) onProjectSelect(project.id, project.name);
+          if (project) onProjectSelect(project.id);
         }}
       >
         <SelectTrigger id="project-selector" className="w-[280px]">

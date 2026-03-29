@@ -96,7 +96,7 @@ export function ColumnMappingDialog({
             <InfoIcon />
             <AlertTitle>Functionality Limitation</AlertTitle>
             <AlertDescription>
-              Vercel's Bulk Redirects does not currently support{" "}
+              Vercel&apos;s Bulk Redirects does not currently support{" "}
               <a href="https://vercel.com/docs/routing/redirects/bulk-redirects#limits-and-pricing">
                 wildcards or pattern matching
               </a>

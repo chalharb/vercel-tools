@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -158,80 +158,92 @@ export function VersionCompare({
     return [productionVersion, compareVersion];
   }, [compareVersion, productionVersion]);
 
-  useEffect(() => {
-    if (!open || !baseVersion || !headVersion) return;
+  const fetchIdRef = useRef(0);
 
+  const loadComparison = useCallback(async (
+    base: RedirectVersion,
+    head: RedirectVersion,
+    pid: string,
+  ) => {
+    const fetchId = ++fetchIdRef.current;
     setLoading(true);
     setSearch("");
     setFilterType("all");
 
-    Promise.all([
-      fetchAllRedirects(projectId, baseVersion.id),
-      fetchAllRedirects(projectId, headVersion.id),
-    ])
-      .then(([baseRedirects, headRedirects]) => {
-        const baseMap = new Map<string, Redirect>();
-        for (const r of baseRedirects) {
-          baseMap.set(r.source, r);
+    try {
+      const [baseRedirects, headRedirects] = await Promise.all([
+        fetchAllRedirects(pid, base.id),
+        fetchAllRedirects(pid, head.id),
+      ]);
+
+      if (fetchId !== fetchIdRef.current) return; // stale
+
+      const baseMap = new Map<string, Redirect>();
+      for (const r of baseRedirects) {
+        baseMap.set(r.source, r);
+      }
+
+      const headMap = new Map<string, Redirect>();
+      for (const r of headRedirects) {
+        headMap.set(r.source, r);
+      }
+
+      const entries: DiffEntry[] = [];
+      const allSources = new Set([
+        ...baseMap.keys(),
+        ...headMap.keys(),
+      ]);
+
+      for (const source of allSources) {
+        const b = baseMap.get(source);
+        const h = headMap.get(source);
+
+        if (b && h) {
+          entries.push({
+            source,
+            type: redirectsEqual(b, h) ? "unchanged" : "modified",
+            base: b,
+            head: h,
+          });
+        } else if (b && !h) {
+          entries.push({
+            source,
+            type: "removed",
+            base: b,
+          });
+        } else if (!b && h) {
+          entries.push({
+            source,
+            type: "added",
+            head: h,
+          });
         }
+      }
 
-        const headMap = new Map<string, Redirect>();
-        for (const r of headRedirects) {
-          headMap.set(r.source, r);
-        }
+      const order: Record<DiffType, number> = {
+        added: 0,
+        removed: 1,
+        modified: 2,
+        unchanged: 3,
+      };
+      entries.sort(
+        (a, b) =>
+          order[a.type] - order[b.type] ||
+          a.source.localeCompare(b.source)
+      );
 
-        const entries: DiffEntry[] = [];
-        const allSources = new Set([
-          ...baseMap.keys(),
-          ...headMap.keys(),
-        ]);
+      setDiff(entries);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-        for (const source of allSources) {
-          const b = baseMap.get(source);
-          const h = headMap.get(source);
-
-          if (b && h) {
-            entries.push({
-              source,
-              type: redirectsEqual(b, h) ? "unchanged" : "modified",
-              base: b,
-              head: h,
-            });
-          } else if (b && !h) {
-            // In base (older) but not in head (newer) — removed
-            entries.push({
-              source,
-              type: "removed",
-              base: b,
-            });
-          } else if (!b && h) {
-            // In head (newer) but not in base (older) — added
-            entries.push({
-              source,
-              type: "added",
-              head: h,
-            });
-          }
-        }
-
-        // Sort: changes first (added, removed, modified), then unchanged
-        const order: Record<DiffType, number> = {
-          added: 0,
-          removed: 1,
-          modified: 2,
-          unchanged: 3,
-        };
-        entries.sort(
-          (a, b) =>
-            order[a.type] - order[b.type] ||
-            a.source.localeCompare(b.source)
-        );
-
-        setDiff(entries);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [open, baseVersion, headVersion, projectId]);
+  useEffect(() => {
+    if (!open || !baseVersion || !headVersion) return;
+    loadComparison(baseVersion, headVersion, projectId);
+  }, [open, baseVersion, headVersion, projectId, loadComparison]);
 
   const filtered = useMemo(() => {
     return diff.filter((entry) => {

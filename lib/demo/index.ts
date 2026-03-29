@@ -1,7 +1,7 @@
 /**
  * Demo implementation of the Vercel redirects API.
  * Mirrors every export from lib/vercel.ts but backed by in-memory demo data.
- * All mutations persist for the lifetime of the server process.
+ * All mutations persist for the lifetime of the session.
  */
 
 import type {
@@ -10,42 +10,13 @@ import type {
   RedirectVersion,
   RedirectsResponse,
   VersionActionResponse,
-} from "./vercel";
-import { getAllProjects, getProjectState } from "./demo-data";
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function deepClone<T>(obj: T): T {
-  return JSON.parse(JSON.stringify(obj));
-}
-
-let idCounter = Date.now();
-function nextId(): string {
-  return `demo-${++idCounter}`;
-}
-
-function getStatusCode(r: Redirect): number {
-  if (r.statusCode) return r.statusCode;
-  if (r.permanent === true) return 308;
-  if (r.permanent === false) return 307;
-  return 307;
-}
-
-function redirectsEqual(a: Redirect, b: Redirect): boolean {
-  return (
-    a.source === b.source &&
-    a.destination === b.destination &&
-    getStatusCode(a) === getStatusCode(b)
-  );
-}
-
-// ─── Projects ────────────────────────────────────────────────────────────────
+} from "@/lib/vercel";
+import { getAllProjects, getProjectState } from "./data";
+import { redirectsEqual, deepClone, getStatusCode, nextId } from "./helpers";
 
 export async function listProjects(): Promise<VercelProject[]> {
   return getAllProjects();
 }
-
-// ─── Redirects ───────────────────────────────────────────────────────────────
 
 export async function getRedirects(
   projectId: string,
@@ -57,13 +28,13 @@ export async function getRedirects(
     search?: string;
     sortBy?: string;
     sortOrder?: string;
-  } = {}
+  } = {},
 ): Promise<RedirectsResponse> {
   const state = getProjectState(projectId);
   const versionId = options.versionId;
 
   // Find the requested version, default to the live version
-  let version =
+  const version =
     state.versions.find((v) => v.id === versionId) ??
     state.versions.find((v) => v.isLive) ??
     state.versions[0];
@@ -103,8 +74,6 @@ export async function getRedirects(
       } else if (!redirectsEqual(r, prod)) {
         diffed.push({ ...r, action: "~" });
       }
-      // unchanged: don't add action, but we still include them so pagination
-      // counts are correct; the client filters by action for staging tab
     }
 
     // Check for deleted (in production but not in staging)
@@ -132,7 +101,7 @@ export async function getRedirects(
     redirects = redirects.filter(
       (r) =>
         r.source.toLowerCase().includes(q) ||
-        r.destination.toLowerCase().includes(q)
+        r.destination.toLowerCase().includes(q),
     );
   }
 
@@ -166,13 +135,10 @@ export async function getRedirects(
   };
 }
 
-// ─── Stage (create / overwrite) ──────────────────────────────────────────────
-
-function getOrCreateStagingVersion(
-  projectId: string
-): RedirectVersion {
+function getOrCreateStagingVersion(projectId: string): RedirectVersion {
   const state = getProjectState(projectId);
   let staging = state.versions.find((v) => v.isStaging);
+
   if (staging) return staging;
 
   // Clone the production redirects into a new staging version
@@ -200,7 +166,7 @@ function getOrCreateStagingVersion(
 export async function stageRedirects(
   projectId: string,
   redirects: Redirect[],
-  options: { overwrite?: boolean; name?: string } = {}
+  options: { overwrite?: boolean; name?: string } = {},
 ): Promise<{ alias: string | null; version: RedirectVersion }> {
   const state = getProjectState(projectId);
   const staging = getOrCreateStagingVersion(projectId);
@@ -226,12 +192,10 @@ export async function stageRedirects(
   return { alias: null, version: deepClone(staging) };
 }
 
-// ─── Edit ────────────────────────────────────────────────────────────────────
-
 export async function editRedirect(
   projectId: string,
   redirect: Redirect,
-  options: { name?: string; restore?: boolean } = {}
+  options: { name?: string; restore?: boolean } = {},
 ): Promise<{ alias: string | null; version: RedirectVersion }> {
   const state = getProjectState(projectId);
   const staging = getOrCreateStagingVersion(projectId);
@@ -251,18 +215,16 @@ export async function editRedirect(
   return { alias: null, version: deepClone(staging) };
 }
 
-// ─── Delete ──────────────────────────────────────────────────────────────────
-
 export async function deleteRedirects(
   projectId: string,
   sources: string[],
-  options: { name?: string } = {}
+  options: { name?: string } = {},
 ): Promise<{ alias: string | null; version: RedirectVersion }> {
   const state = getProjectState(projectId);
   const staging = getOrCreateStagingVersion(projectId);
   const sourceSet = new Set(sources);
   const redirects = (state.redirectsByVersion.get(staging.id) ?? []).filter(
-    (r) => !sourceSet.has(r.source)
+    (r) => !sourceSet.has(r.source),
   );
   state.redirectsByVersion.set(staging.id, redirects);
 
@@ -273,12 +235,10 @@ export async function deleteRedirects(
   return { alias: null, version: deepClone(staging) };
 }
 
-// ─── Restore ─────────────────────────────────────────────────────────────────
-
 export async function restoreRedirects(
   projectId: string,
   sources: string[],
-  options: { name?: string } = {}
+  options: { name?: string } = {},
 ): Promise<{
   version: RedirectVersion;
   restored: string[];
@@ -321,10 +281,8 @@ export async function restoreRedirects(
   };
 }
 
-// ─── Versions ────────────────────────────────────────────────────────────────
-
 export async function getVersionHistory(
-  projectId: string
+  projectId: string,
 ): Promise<{ versions: RedirectVersion[] }> {
   const state = getProjectState(projectId);
   return { versions: deepClone(state.versions) };
@@ -334,7 +292,7 @@ export async function updateVersion(
   projectId: string,
   versionId: string,
   action: "promote" | "restore" | "discard",
-  options: { name?: string } = {}
+  options: { name?: string } = {},
 ): Promise<VersionActionResponse> {
   const state = getProjectState(projectId);
   const version = state.versions.find((v) => v.id === versionId);
@@ -343,8 +301,6 @@ export async function updateVersion(
   }
 
   if (action === "promote") {
-    // The staging version becomes the new live version.
-    // The old live version becomes a historical version.
     const oldLive = state.versions.find((v) => v.isLive);
     if (oldLive) {
       oldLive.isLive = false;
@@ -354,7 +310,6 @@ export async function updateVersion(
     version.lastModified = Date.now();
     if (options.name) version.name = options.name;
   } else if (action === "discard") {
-    // Remove the staging version entirely
     const idx = state.versions.findIndex((v) => v.id === versionId);
     if (idx >= 0) {
       state.versions.splice(idx, 1);
@@ -369,22 +324,16 @@ export async function updateVersion(
       },
     };
   } else if (action === "restore") {
-    // Clone the historical version's redirects into a new staging version
     const existingStaging = state.versions.find((v) => v.isStaging);
     if (existingStaging) {
-      // Discard existing staging first
-      const idx = state.versions.findIndex(
-        (v) => v.id === existingStaging.id
-      );
+      const idx = state.versions.findIndex((v) => v.id === existingStaging.id);
       if (idx >= 0) {
         state.versions.splice(idx, 1);
         state.redirectsByVersion.delete(existingStaging.id);
       }
     }
 
-    const redirects = deepClone(
-      state.redirectsByVersion.get(versionId) ?? []
-    );
+    const redirects = deepClone(state.redirectsByVersion.get(versionId) ?? []);
     const newStaging: RedirectVersion = {
       id: nextId(),
       key: `versions/restored-${versionId}`,
@@ -395,6 +344,7 @@ export async function updateVersion(
       isLive: false,
       redirectCount: redirects.length,
     };
+
     state.versions.unshift(newStaging);
     state.redirectsByVersion.set(newStaging.id, redirects);
 

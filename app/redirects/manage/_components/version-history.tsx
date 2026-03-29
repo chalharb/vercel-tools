@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -43,15 +43,23 @@ export function VersionHistory({
   const [versions, setVersions] = useState<RedirectVersion[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const fetchVersions = useCallback(async (pid: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/redirects/versions?projectId=${pid}`);
+      const data = await res.json();
+      setVersions(data.versions ?? []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!open || !projectId) return;
-    setLoading(true);
-    fetch(`/api/redirects/versions?projectId=${projectId}`)
-      .then((res) => res.json())
-      .then((data) => setVersions(data.versions ?? []))
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [open, projectId]);
+    fetchVersions(projectId);
+  }, [open, projectId, fetchVersions]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

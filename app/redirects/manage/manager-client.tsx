@@ -61,8 +61,8 @@ export function RedirectsManager({
   const router = useRouter();
 
   // Project state
-  const [projectId, setProjectId] = useState<string>(initialProjectId);
-  const [projectName, setProjectName] = useState<string>(initialProjectName);
+  const [projectId] = useState<string>(initialProjectId);
+  const [projectName] = useState<string>(initialProjectName);
 
   // Tab / view state
   const [activeTab, setActiveTab] = useState<TabValue>("production");
@@ -248,7 +248,7 @@ export function RedirectsManager({
     }
   }, [projectId, activeTab, fetchRedirects]);
 
-  function handleProjectSelect(id: string, _name: string) {
+  function handleProjectSelect(id: string) {
     router.push(`/redirects/manage/${id}`);
   }
 
@@ -457,7 +457,6 @@ export function RedirectsManager({
         <div className="flex items-center gap-3">
           <ProjectSelector
             projects={projects}
-            selectedProjectId={projectId}
             selectedProjectName={projectName}
             onProjectSelect={handleProjectSelect}
           />

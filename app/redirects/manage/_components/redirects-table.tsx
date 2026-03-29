@@ -78,6 +78,37 @@ function ActionBadge({ action }: { action?: string }) {
   );
 }
 
+function SortableHeader({
+  field,
+  sortBy,
+  sortOrder,
+  onSort,
+  children,
+}: {
+  field: string;
+  sortBy: string;
+  sortOrder: string;
+  onSort: (field: string) => void;
+  children: React.ReactNode;
+}) {
+  const isActive = sortBy === field;
+  return (
+    <TableHead
+      className="cursor-pointer select-none hover:bg-muted/50"
+      onClick={() => onSort(field)}
+    >
+      <span className="flex items-center gap-1">
+        {children}
+        {isActive && (
+          <span className="text-xs">
+            {sortOrder === "asc" ? "\u2191" : "\u2193"}
+          </span>
+        )}
+      </span>
+    </TableHead>
+  );
+}
+
 export function RedirectsTable({
   redirects,
   selectedSources,
@@ -110,31 +141,6 @@ export function RedirectsTable({
     onSelectionChange(next);
   }
 
-  function SortableHeader({
-    field,
-    children,
-  }: {
-    field: string;
-    children: React.ReactNode;
-  }) {
-    const isActive = sortBy === field;
-    return (
-      <TableHead
-        className="cursor-pointer select-none hover:bg-muted/50"
-        onClick={() => onSort(field)}
-      >
-        <span className="flex items-center gap-1">
-          {children}
-          {isActive && (
-            <span className="text-xs">
-              {sortOrder === "asc" ? "\u2191" : "\u2193"}
-            </span>
-          )}
-        </span>
-      </TableHead>
-    );
-  }
-
   if (redirects.length === 0) {
     return (
       <div className="py-12 text-center text-muted-foreground">
@@ -150,9 +156,9 @@ export function RedirectsTable({
           <TableHead className="w-[40px]">
             <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
           </TableHead>
-          <SortableHeader field="source">Source</SortableHeader>
-          <SortableHeader field="statusCode">Code</SortableHeader>
-          <SortableHeader field="destination">Destination</SortableHeader>
+          <SortableHeader field="source" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort}>Source</SortableHeader>
+          <SortableHeader field="statusCode" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort}>Code</SortableHeader>
+          <SortableHeader field="destination" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort}>Destination</SortableHeader>
           {showActions && <TableHead>Change</TableHead>}
           <TableHead className="w-[50px]" />
         </TableRow>
@@ -194,10 +200,10 @@ export function RedirectsTable({
               )}
               <TableCell>
                 <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={<Button variant="ghost" size="icon" className="h-8 w-8" />}
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => onEdit(redirect)}>

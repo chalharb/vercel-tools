@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { PlusIcon, XIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -25,9 +25,12 @@ interface ColumnFieldEditorProps {
 export function ColumnFieldEditor({ label, required, spec, rawHeaders, onChange }: ColumnFieldEditorProps) {
   const [isCombining, setIsCombining] = useState(spec.columns.length > 1);
 
-  useEffect(() => {
+  // Sync isCombining when spec changes externally (e.g. preset applied)
+  const [prevColCount, setPrevColCount] = useState(spec.columns.length);
+  if (spec.columns.length !== prevColCount) {
+    setPrevColCount(spec.columns.length);
     if (spec.columns.length <= 1) setIsCombining(false);
-  }, [spec.columns.length]);
+  }
 
   const availableHeaders = rawHeaders.filter((h) => !spec.columns.includes(h));
 

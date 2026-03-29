@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { CSV_PRESETS, type ColumnFieldSpec, type ColumnMapping, type CsvPreset } from "./csv-presets";
 
 const STORAGE_KEY = "vercel-tools:saved-column-mappings";
@@ -158,12 +158,7 @@ export function detectMapping(
 // ---------------------------------------------------------------------------
 
 export function useSavedMappings() {
-  const [savedMappings, setSavedMappings] = useState<SavedMapping[]>([]);
-
-  // Load from localStorage on mount (client only)
-  useEffect(() => {
-    setSavedMappings(loadSavedMappings());
-  }, []);
+  const [savedMappings, setSavedMappings] = useState<SavedMapping[]>(loadSavedMappings);
 
   const saveMapping = useCallback((name: string, mapping: ColumnMapping) => {
     setSavedMappings((prev) => {

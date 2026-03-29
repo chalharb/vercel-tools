@@ -1,4 +1,4 @@
-import type { ColumnFieldSpec, ColumnMapping, CsvPreset, PresetOptions } from "./csv-presets";
+import type { ColumnMapping, CsvPreset, PresetOptions } from "./csv-presets";
 import type { SavedMapping } from "./use-column-mapping";
 
 /** The resolved mapping the dialog emits on confirm. */

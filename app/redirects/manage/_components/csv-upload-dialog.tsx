@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -194,18 +194,20 @@ export function CsvUploadDialog({
 }: CsvUploadDialogProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [redirects, setRedirects] = useState<ParsedRedirect[]>([]);
-  const [errors, setErrors] = useState<ParseError[]>([]);
   const [parsed, setParsed] = useState(false);
   const [rawText, setRawText] = useState<string | null>(null);
   const [includeOrigin, setIncludeOrigin] = useState(false);
   const [overwrite, setOverwrite] = useState(false);
   const [dragOver, setDragOver] = useState(false);
 
+  // Derive redirects + errors from rawText + includeOrigin (no effect needed)
+  const { redirects, errors } = useMemo(() => {
+    if (rawText === null) return { redirects: [] as ParsedRedirect[], errors: [] as ParseError[] };
+    return parseCSV(rawText, includeOrigin);
+  }, [rawText, includeOrigin]);
+
   function reset() {
     setFile(null);
-    setRedirects([]);
-    setErrors([]);
     setParsed(false);
     setRawText(null);
     setIncludeOrigin(false);
@@ -222,20 +224,8 @@ export function CsvUploadDialog({
     setFile(f);
     const text = await f.text();
     setRawText(text);
-    const result = parseCSV(text, includeOrigin);
-    setRedirects(result.redirects);
-    setErrors(result.errors);
     setParsed(true);
   }
-
-  // Re-parse when includeOrigin changes and we have a file loaded
-  useEffect(() => {
-    if (rawText !== null) {
-      const result = parseCSV(rawText, includeOrigin);
-      setRedirects(result.redirects);
-      setErrors(result.errors);
-    }
-  }, [includeOrigin, rawText]);
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();

@@ -1,6 +1,13 @@
-import type { VercelProject, Redirect, RedirectVersion } from "./vercel";
+/**
+ * This file is used for seeding the project with fake data for demonstrating app functionality
+ */
 
-// ─── Seed Data ───────────────────────────────────────────────────────────────
+import type { VercelProject, Redirect, RedirectVersion } from "@/lib/vercel";
+
+interface ProjectState {
+  versions: RedirectVersion[];
+  redirectsByVersion: Map<string, Redirect[]>;
+}
 
 const now = Date.now();
 const hour = 3_600_000;
@@ -29,7 +36,7 @@ export const DEMO_PROJECTS: VercelProject[] = [
 
 function makeVersion(
   id: string,
-  overrides: Partial<RedirectVersion> = {}
+  overrides: Partial<RedirectVersion> = {},
 ): RedirectVersion {
   return {
     id,
@@ -64,13 +71,17 @@ const ACME_PRODUCTION_REDIRECTS: Redirect[] = [
   { source: "/webinar-old", destination: "/webinars", statusCode: 301 },
   { source: "/sale", destination: "/offers", statusCode: 302 },
   { source: "/demo-old", destination: "/demo", statusCode: 301 },
-  { source: "/whitepaper", destination: "/resources/whitepapers", statusCode: 301 },
+  {
+    source: "/whitepaper",
+    destination: "/resources/whitepapers",
+    statusCode: 301,
+  },
 ];
 
 const ACME_STAGING_REDIRECTS: Redirect[] = [
-  // Existing but modified
+  // Modified modified
   { source: "/old-home", destination: "/home", statusCode: 308 },
-  // Kept unchanged
+  // Unchanged
   { source: "/blog-old", destination: "/blog", statusCode: 301 },
   { source: "/about-us", destination: "/about", statusCode: 301 },
   { source: "/careers", destination: "/jobs", statusCode: 302 },
@@ -93,15 +104,22 @@ const ACME_STAGING_REDIRECTS: Redirect[] = [
   { source: "/webinar-old", destination: "/webinars", statusCode: 301 },
   { source: "/sale", destination: "/offers", statusCode: 302 },
   { source: "/demo-old", destination: "/demo", statusCode: 301 },
-  { source: "/whitepaper", destination: "/resources/whitepapers", statusCode: 301 },
-  // Deleted: none removed from production list above
+  {
+    source: "/whitepaper",
+    destination: "/resources/whitepapers",
+    statusCode: 301,
+  },
   // Added
   { source: "/new-feature", destination: "/features/new", statusCode: 301 },
   { source: "/launch", destination: "/products/launch", statusCode: 302 },
 ];
 
 const DOCS_REDIRECTS: Redirect[] = [
-  { source: "/v1/getting-started", destination: "/docs/quickstart", statusCode: 301 },
+  {
+    source: "/v1/getting-started",
+    destination: "/docs/quickstart",
+    statusCode: 301,
+  },
   { source: "/v1/api-reference", destination: "/docs/api", statusCode: 301 },
   { source: "/v1/tutorials", destination: "/docs/guides", statusCode: 301 },
   { source: "/old-sdk", destination: "/docs/sdk", statusCode: 301 },
@@ -109,19 +127,13 @@ const DOCS_REDIRECTS: Redirect[] = [
 ];
 
 const BLOG_REDIRECTS: Redirect[] = [
-  { source: "/2022-roundup", destination: "/archive/2022-roundup", statusCode: 301 },
+  {
+    source: "/2022-roundup",
+    destination: "/archive/2022-roundup",
+    statusCode: 301,
+  },
   { source: "/categories", destination: "/topics", statusCode: 301 },
 ];
-
-// ─── Mutable State ───────────────────────────────────────────────────────────
-// This is intentionally module-level mutable state so that mutations persist
-// across requests during a single server session (good enough for a demo).
-
-interface ProjectState {
-  versions: RedirectVersion[];
-  /** Map from version ID to the array of redirects for that version */
-  redirectsByVersion: Map<string, Redirect[]>;
-}
 
 const stateByProject = new Map<string, ProjectState>();
 
@@ -162,6 +174,7 @@ function initProjectState(projectId: string): ProjectState {
 
   const versions: RedirectVersion[] = [prodVersion];
   const redirectsByVersion = new Map<string, Redirect[]>();
+
   redirectsByVersion.set(prodVersion.id, prodRedirects);
 
   // Historical version
@@ -172,10 +185,12 @@ function initProjectState(projectId: string): ProjectState {
     lastModified: now - 14 * day,
     redirectCount: Math.max(0, prodRedirects.length - 3),
   });
+
   versions.push(histVersion);
+
   redirectsByVersion.set(
     histVersion.id,
-    prodRedirects.slice(0, Math.max(0, prodRedirects.length - 3))
+    prodRedirects.slice(0, Math.max(0, prodRedirects.length - 3)),
   );
 
   // Staging version for acme
@@ -191,15 +206,14 @@ function initProjectState(projectId: string): ProjectState {
     redirectsByVersion.set(stagingVersion.id, stagingRedirects);
   }
 
-  // Sort versions newest first
   versions.sort((a, b) => b.lastModified - a.lastModified);
 
   const state: ProjectState = { versions, redirectsByVersion };
+
   stateByProject.set(projectId, state);
+
   return state;
 }
-
-// ─── Exports ─────────────────────────────────────────────────────────────────
 
 export function getProjectState(projectId: string): ProjectState {
   return initProjectState(projectId);

@@ -1,12 +1,11 @@
 import { RedirectsManager } from "../manager-client";
 import { listProjects } from "@/lib/redirects-api";
 import { notFound } from "next/navigation";
-import type { PageProps } from "next";
 
-export async function generateMetadata(
-  props: PageProps<"/redirects/manage/[projectId]">
-) {
-  const { projectId } = await props.params;
+type Props = { params: Promise<{ projectId: string }> };
+
+export async function generateMetadata({ params }: Props) {
+  const { projectId } = await params;
   const projects = await listProjects();
   const project = projects.find((p) => p.id === projectId);
   return {
@@ -16,10 +15,8 @@ export async function generateMetadata(
   };
 }
 
-export default async function ProjectRedirectsPage(
-  props: PageProps<"/redirects/manage/[projectId]">
-) {
-  const { projectId } = await props.params;
+export default async function ProjectRedirectsPage({ params }: Props) {
+  const { projectId } = await params;
   const projects = await listProjects();
   const project = projects.find((p) => p.id === projectId);
 

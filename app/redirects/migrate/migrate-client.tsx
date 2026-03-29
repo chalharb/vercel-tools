@@ -43,7 +43,7 @@ export function MigrateClient() {
   // Pending file/text kept while dialog is open
   const pendingFileRef = useRef<{ text: string; name: string; preset?: ResolvedMapping } | null>(null);
   // Original raw text stored so the dialog can be re-opened to change the mapping
-  const originalTextRef = useRef<{ text: string; name: string } | null>(null);
+  const [originalText, setOriginalText] = useState<{ text: string; name: string } | null>(null);
 
   const csv = useCsvParser();
   const analysis = useRedirectAnalysis(csv.rawData, csv.rawHeaders, resolvedMapping);
@@ -59,7 +59,7 @@ export function MigrateClient() {
     setMappingDialogOpen(false);
     setMappingDialogHint(undefined);
     pendingFileRef.current = null;
-    originalTextRef.current = null;
+    setOriginalText(null);
     analysis.resetActions();
   }, [csv, analysis]);
 
@@ -127,7 +127,7 @@ export function MigrateClient() {
         const text = reader.result as string;
         // Load raw (no preset preprocessing yet) so dialog can show raw headers
         csv.loadText(text, file.name);
-        originalTextRef.current = { text, name: file.name };
+        setOriginalText({ text, name: file.name });
         openMappingDialog(text, file.name);
       };
       reader.onerror = () => csv.handleFile(file); // fallback, triggers error state
@@ -155,7 +155,7 @@ export function MigrateClient() {
       // so we can show the unprocessed headers in the dialog.
       // The dialog will re-trigger preprocessing on confirm.
       csv.loadText(text, example.fileName);
-      originalTextRef.current = { text, name: example.fileName };
+      setOriginalText({ text, name: example.fileName });
       openMappingDialog(text, example.fileName, presetHint);
     },
     [csv]
@@ -211,8 +211,8 @@ export function MigrateClient() {
                     onClick={() => {
                       // Re-open the dialog to adjust the mapping.
                       // Restore the original raw text so complex presets can re-preprocess.
-                      if (originalTextRef.current) {
-                        const { text, name } = originalTextRef.current;
+                      if (originalText) {
+                        const { text, name } = originalText;
                         // Re-parse raw (without any preset preprocessing) so the dialog
                         // shows the original unprocessed headers.
                         csv.loadText(text, name);
@@ -320,7 +320,7 @@ export function MigrateClient() {
         open={mappingDialogOpen}
         rawHeaders={csv.rawHeaders}
         rawPreview={csv.rawData.slice(0, 4)}
-        rawText={originalTextRef.current?.text}
+        rawText={originalText?.text}
         fileName={csv.fileName ?? ""}
         savedMappings={savedMappings}
         presetHint={mappingDialogHint}

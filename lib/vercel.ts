@@ -11,11 +11,6 @@ function getHeaders(): HeadersInit {
   };
 }
 
-function teamParams(): string {
-  const teamId = process.env.VERCEL_TEAM_ID;
-  return teamId ? `teamId=${teamId}` : "";
-}
-
 async function vercelFetch(
   path: string,
   options: RequestInit = {}
